@@ -62,12 +62,13 @@ function saveJsonStore() {
 async function initStorage() {
   const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/connection_game';
   try {
-    // Attempt MongoDB connection with 2.5s timeout
+    // Attempt MongoDB connection (10s timeout for remote Atlas cloud clusters)
     await mongoose.connect(mongoUri, {
-      serverSelectionTimeoutMS: 2500
+      serverSelectionTimeoutMS: process.env.MONGODB_URI ? 10000 : 2500
     });
     isMongoConnected = true;
-    console.log('✅ Connected to MongoDB at', mongoUri);
+    const safeLogUri = mongoUri.replace(/\/\/([^:]+):([^@]+)@/, '//***:***@');
+    console.log('✅ Connected to MongoDB at', safeLogUri);
 
     // Seed MongoDB if empty
     const teamCount = await Team.countDocuments();
