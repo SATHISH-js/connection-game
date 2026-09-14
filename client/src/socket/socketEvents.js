@@ -1,0 +1,40 @@
+// Socket.IO event name constants
+export const SOCKET_EVENTS = {
+  // Server to Client
+  GAME_STATE_SYNC: 'gameStateSync',
+  TIMER_STARTED: 'timerStarted',
+  TIMER_PAUSED: 'timerPaused',
+  TIMER_RESUMED: 'timerResumed',
+  TIMER_RESET: 'timerReset',
+  TIMER_FINISHED: 'timerFinished',
+  ANSWER_REVEALED: 'answerRevealed',
+  ANSWER_HIDDEN: 'answerHidden',
+  SCORE_UPDATED: 'scoreUpdated',
+  LEADERBOARD_UPDATED: 'leaderboardUpdated',
+  TRIGGER_AUDIO_EFFECT: 'triggerAudioEffect',
+  AUDIO_STOPPED: 'audioStopped',
+  AUDIO_SETTINGS_CHANGED: 'audioSettingsChanged',
+  GAME_ENDED: 'gameEnded',
+  DISPLAY_CONNECTED: 'displayConnected',
+  DISPLAY_DISCONNECTED: 'displayDisconnected',
+
+  // Client to Server
+  GAME_START: 'game:start',
+  GAME_NEXT: 'game:next',
+  GAME_PREVIOUS: 'game:previous',
+  GAME_SET_ROUND: 'game:set-round',
+  GAME_REVEAL_ANSWER: 'game:reveal-answer',
+  GAME_HIDE_ANSWER: 'game:hide-answer',
+  GAME_TOGGLE_LEADERBOARD: 'game:toggle-leaderboard',
+  GAME_TOGGLE_PODIUM: 'game:toggle-podium',
+  GAME_END: 'game:end',
+  GAME_RESET: 'game:reset',
+  TIMER_START: 'timer:start',
+  TIMER_PAUSE: 'timer:pause',
+  TIMER_RESUME: 'timer:resume',
+  TIMER_RESET_CMD: 'timer:reset',
+  AUDIO_TRIGGER: 'audio:trigger',
+  AUDIO_STOP: 'audio:stop',
+  AUDIO_SETTINGS: 'audio:settings',
+  TIEBREAKER_SELECT_TEAMS: 'tiebreaker:select-teams'
+};
