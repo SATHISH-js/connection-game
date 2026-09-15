@@ -719,6 +719,7 @@ function QuestionEditorModal({ question, onClose, onSave }) {
   const [formData, setFormData] = useState({
     ...question,
     clues: initialClues,
+    initialRevealedCount: question.initialRevealedCount !== undefined ? Number(question.initialRevealedCount) : 1,
     revealAllAtStart: !!question.revealAllAtStart
   });
 
@@ -874,7 +875,7 @@ function QuestionEditorModal({ question, onClose, onSave }) {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Metadata Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 p-4 rounded-2xl bg-slate-950/70 border border-slate-800">
+          <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 p-4 rounded-2xl bg-slate-950/70 border border-slate-800">
             <div>
               <label className="block text-xs font-black text-slate-400 uppercase mb-1">Round</label>
               <select
@@ -883,7 +884,7 @@ function QuestionEditorModal({ question, onClose, onSave }) {
                 className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs font-bold text-slate-200"
               >
                 <option value={1}>Round 1 (Normal)</option>
-                <option value={2}>Round 2 (1-by-1 Step Reveal)</option>
+                <option value={2}>Round 2 (Step Reveal)</option>
                 <option value={3}>Round 3 (Tie Breaker)</option>
               </select>
             </div>
@@ -924,6 +925,21 @@ function QuestionEditorModal({ question, onClose, onSave }) {
                 <option value={60}>60 Seconds</option>
               </select>
             </div>
+
+            <div>
+              <label className="block text-xs font-black text-amber-400 uppercase mb-1">Initial Reveal</label>
+              <select
+                value={formData.initialRevealedCount !== undefined ? formData.initialRevealedCount : 1}
+                onChange={(e) => setFormData({ ...formData, initialRevealedCount: Number(e.target.value) })}
+                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs font-bold text-slate-200"
+                title="Number of clues visible immediately when question starts"
+              >
+                <option value={1}>1 Clue (Default)</option>
+                <option value={2}>2 Clues</option>
+                <option value={3}>3 Clues</option>
+                <option value={4}>All Clues</option>
+              </select>
+            </div>
           </div>
 
           {/* Question Title */}
@@ -943,7 +959,7 @@ function QuestionEditorModal({ question, onClose, onSave }) {
 
           {/* Dynamic Multimedia Clues Section */}
           <div>
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
               <label className="text-xs font-black text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
                 <ImageIcon className="w-4 h-4 text-amber-400" />
                 <span>MULTIMEDIA CLUES ({formData.clues.length} {formData.clues.length === 1 ? 'CLUE' : 'CLUES'})</span>
@@ -969,6 +985,16 @@ function QuestionEditorModal({ question, onClose, onSave }) {
                 >
                   <Plus className="w-3.5 h-3.5" /> ADD CLUE
                 </button>
+              </div>
+            </div>
+
+            {/* Recommended Image Dimensions Banner */}
+            <div className="p-3 rounded-xl bg-gradient-to-r from-amber-500/10 via-cyan-500/10 to-transparent border border-amber-500/25 flex items-start gap-2 text-xs text-slate-300 mb-3">
+              <span className="text-amber-400 font-bold text-sm leading-none mt-0.5">📐</span>
+              <div className="leading-relaxed">
+                <strong className="text-amber-300 font-black">Image Specs for Hoster: </strong>
+                Recommended ratio is <span className="font-mono text-cyan-300 font-bold">16:9</span> (1920×1080, 1280×720) or <span className="font-mono text-cyan-300 font-bold">4:3</span> (1024×768), min width 600px.
+                Images automatically scale and adapt flexibly on Smart Board and mobile without letterbox distortion. Formats: JPG, PNG, WEBP, or MP4.
               </div>
             </div>
 
@@ -1031,8 +1057,9 @@ function QuestionEditorModal({ question, onClose, onSave }) {
 
                   {/* Clue Text / Caption Input */}
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">
-                      Caption / Text Label <span className="text-slate-500 lowercase">(optional if media provided)</span>
+                    <label className="block text-[10px] font-bold text-slate-300 uppercase mb-0.5 flex items-center justify-between">
+                      <span>Caption / Text Label</span>
+                      <span className="text-emerald-400 font-bold lowercase text-[10px] bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">(Optional)</span>
                     </label>
                     <input
                       type="text"

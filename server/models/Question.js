@@ -11,6 +11,7 @@ const QuestionSchema = new mongoose.Schema({
   tamilText: { type: String, default: '' },
   ttsClue: { type: String, default: '' },
   revealAllAtStart: { type: Boolean, default: false },
+  initialRevealedCount: { type: Number, default: 1 },
   points: { type: Number, default: 10 },
   timerDuration: { type: Number, default: 30 },
   answerAudio: { type: String, default: null },

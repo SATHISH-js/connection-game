@@ -63,6 +63,24 @@ export const GameProvider = ({ children, role = 'viewer' }) => {
     return localStorage.getItem('connection_game_theme') || 'dark';
   });
 
+  // Persistent Smart Board Mini Preview state: Default is FALSE so it never pops up without user touch/action
+  const [showMiniPreview, setShowMiniPreview] = useState(() => {
+    return localStorage.getItem('smartboard_preview_open') === 'true';
+  });
+
+  const toggleMiniPreview = useCallback(() => {
+    setShowMiniPreview(prev => {
+      const next = !prev;
+      localStorage.setItem('smartboard_preview_open', String(next));
+      return next;
+    });
+  }, []);
+
+  const setMiniPreviewOpen = useCallback((isOpen) => {
+    setShowMiniPreview(Boolean(isOpen));
+    localStorage.setItem('smartboard_preview_open', String(Boolean(isOpen)));
+  }, []);
+
   useEffect(() => {
     localStorage.setItem('connection_game_theme', theme);
     if (theme === 'light') {
@@ -559,7 +577,10 @@ export const GameProvider = ({ children, role = 'viewer' }) => {
         setCelebrationAudio,
         controlCelebrationAudio,
         selectTieBreakerTeams,
-        updateTeamScore
+        updateTeamScore,
+        showMiniPreview,
+        toggleMiniPreview,
+        setMiniPreviewOpen
       }}
     >
       {children}

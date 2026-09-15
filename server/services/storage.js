@@ -87,8 +87,39 @@ async function initStorage() {
   }
 }
 
+function buildIdQuery(id) {
+  if (!id) return { id: '__invalid__' };
+  const strId = String(id);
+  const isValidObjectId = mongoose.Types.ObjectId.isValid(strId) && strId.length === 24;
+  return isValidObjectId ? { $or: [{ id: strId }, { _id: strId }] } : { id: strId };
+}
+
+function matchMemoryItem(item, id) {
+  if (!item || !id) return false;
+  const strId = String(id);
+  return String(item.id) === strId || (item._id && String(item._id) === strId);
+}
+
 const storage = {
   isMongo: () => isMongoConnected,
+
+  getDbStatus() {
+    const mongoUri = process.env.MONGODB_URI || '';
+    const isConfigured = Boolean(mongoUri && mongoUri.trim() !== '');
+    const isAtlas = mongoUri.includes('mongodb.net');
+    return {
+      connected: isMongoConnected,
+      mode: isMongoConnected ? 'mongodb' : 'local_json',
+      databaseType: isMongoConnected ? (isAtlas ? 'MongoDB Atlas (Cloud)' : 'MongoDB (Local)') : 'Local JSON Fallback (store.json)',
+      isPersistentOnRender: isMongoConnected,
+      mongoUriConfigured: isConfigured,
+      message: isMongoConnected
+        ? 'Connected to permanent cloud database. Your teams, questions, and scores will persist across Render restarts.'
+        : isConfigured
+          ? 'MongoDB URI is configured, but connection timed out (check MongoDB Atlas Network Access IP whitelist 0.0.0.0/0). Using local JSON storage.'
+          : 'Running on local JSON storage (store.json). Free cloud hosts like Render wipe local storage on redeploy/spin-down. Add MONGODB_URI in Render Environment Variables for 100% permanent persistence.'
+    };
+  },
 
   // Teams
   async getTeams() {
@@ -189,12 +220,15 @@ const storage = {
 
   async getQuestion(id) {
     if (isMongoConnected) {
-      return await Question.findOne({ id }).lean();
+      return await Question.findOne(buildIdQuery(id)).lean();
     }
-    return memoryStore.questions.find(q => q.id === id) || null;
+    return memoryStore.questions.find(q => matchMemoryItem(q, id)) || null;
   },
 
   async createQuestion(questionData) {
+    if (!questionData.id) {
+      questionData.id = 'q_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+    }
     if (isMongoConnected) {
       return await Question.create(questionData);
     }
@@ -205,9 +239,9 @@ const storage = {
 
   async updateQuestion(id, updates) {
     if (isMongoConnected) {
-      return await Question.findOneAndUpdate({ id }, { $set: updates }, { new: true }).lean();
+      return await Question.findOneAndUpdate(buildIdQuery(id), { $set: updates }, { new: true }).lean();
     }
-    const idx = memoryStore.questions.findIndex(q => q.id === id);
+    const idx = memoryStore.questions.findIndex(q => matchMemoryItem(q, id));
     if (idx !== -1) {
       memoryStore.questions[idx] = { ...memoryStore.questions[idx], ...updates, updatedAt: new Date() };
       saveJsonStore();
@@ -218,9 +252,9 @@ const storage = {
 
   async deleteQuestion(id) {
     if (isMongoConnected) {
-      return await Question.findOneAndDelete({ id });
+      return await Question.findOneAndDelete(buildIdQuery(id));
     }
-    const idx = memoryStore.questions.findIndex(q => q.id === id);
+    const idx = memoryStore.questions.findIndex(q => matchMemoryItem(q, id));
     if (idx !== -1) {
       const removed = memoryStore.questions.splice(idx, 1)[0];
       saveJsonStore();

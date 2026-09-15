@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Save, RefreshCw, Key, Monitor, Sliders, CheckCircle, ShieldAlert } from 'lucide-react';
+import { Settings, Save, RefreshCw, Key, Monitor, Sliders, CheckCircle, ShieldAlert, Database, Server, ShieldCheck, AlertTriangle } from 'lucide-react';
 import HostLayout from '../components/HostLayout';
 import { useGame } from '../context/GameContext';
 
@@ -8,8 +8,29 @@ export default function SettingsPage() {
   const [formData, setFormData] = useState({ ...settings });
   const [saving, setSaving] = useState(false);
   const [reseedConfirm, setReseedConfirm] = useState(false);
+  const [dbStatus, setDbStatus] = useState(null);
+  const [checkingDb, setCheckingDb] = useState(false);
 
   const pin = localStorage.getItem('host_auth_pin') || '1234';
+
+  const checkDbStatus = async () => {
+    setCheckingDb(true);
+    try {
+      const res = await fetch('/api/settings/db-status');
+      const data = await res.json();
+      if (data.success) {
+        setDbStatus(data.data);
+      }
+    } catch (e) {
+      console.warn('DB status error', e);
+    } finally {
+      setCheckingDb(false);
+    }
+  };
+
+  useEffect(() => {
+    checkDbStatus();
+  }, []);
 
   useEffect(() => {
     if (settings) {
@@ -138,58 +159,171 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* Timer & Leaderboard Options */}
+          {/* Database Connection Health & Persistence Status */}
+          <div className="p-6 rounded-3xl bg-slate-900/60 border border-slate-800 backdrop-blur-xl space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="text-xs font-black tracking-widest text-emerald-400 uppercase flex items-center gap-2">
+                <Database className="w-4 h-4" />
+                <span>DATABASE PERSISTENCE & CLOUD HEALTH</span>
+              </div>
+              <button
+                type="button"
+                onClick={checkDbStatus}
+                disabled={checkingDb}
+                className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition-all disabled:opacity-50"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${checkingDb ? 'animate-spin text-cyan-400' : ''}`} />
+                <span>Re-check Status</span>
+              </button>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <span className={`w-3 h-3 rounded-full ${dbStatus?.connected ? 'bg-emerald-400 shadow-[0_0_10px_#34d399]' : 'bg-amber-400 shadow-[0_0_10px_#fbbf24] animate-pulse'}`} />
+                  <span className="text-sm font-black text-slate-100">
+                    {dbStatus?.databaseType || 'Detecting Database Mode...'}
+                  </span>
+                </div>
+                <span className={`text-[10px] font-mono font-black uppercase px-2.5 py-1 rounded-full border ${
+                  dbStatus?.connected
+                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                    : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                }`}>
+                  {dbStatus?.connected ? 'PERMANENT STORAGE' : 'EPHEMERAL (LOCAL JSON)'}
+                </span>
+              </div>
+
+              <p className="text-xs text-slate-300 leading-relaxed">
+                {dbStatus?.message || 'Loading database status...'}
+              </p>
+
+              {!dbStatus?.connected && (
+                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-200/90 flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold text-amber-300">Why did your questions change or reset? </span>
+                    On cloud platforms like Render, local files (<code className="text-amber-300 font-mono">store.json</code>) reset every time Render sleeps or redeploys. To make questions 100% permanent forever:
+                    <ol className="list-decimal ml-4 mt-1 space-y-0.5 text-[11px] text-slate-300">
+                      <li>Create a free cluster on <strong className="text-white">mongodb.com/atlas</strong></li>
+                      <li>Go to <strong className="text-white">Network Access</strong> &rarr; Add IP Address <strong className="text-emerald-300 font-mono">0.0.0.0/0</strong> (Allow access from anywhere)</li>
+                      <li>In your Render service &rarr; <strong className="text-white">Environment</strong> &rarr; Add <code className="text-amber-300 font-mono">MONGODB_URI</code> = your Atlas connection string</li>
+                    </ol>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Timer & Round Defaults Options */}
           <div className="p-6 rounded-3xl bg-slate-900/60 border border-slate-800 backdrop-blur-xl space-y-4">
             <div className="text-xs font-black tracking-widest text-purple-400 uppercase flex items-center gap-2">
               <Monitor className="w-4 h-4" />
-              <span>SMART BOARD ROTATION & TIMERS</span>
+              <span>ROUND DEFAULT TIMERS & SMART BOARD ROTATION</span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-300 uppercase mb-1">
-                  Default Question Timer
+                <label className="block text-xs font-bold text-amber-400 uppercase mb-1">
+                  Round 1 Default Timer
                 </label>
                 <select
-                  value={formData.defaultTimer || 30}
-                  onChange={(e) => setFormData({ ...formData, defaultTimer: Number(e.target.value) })}
+                  value={formData.round1Timer !== undefined ? formData.round1Timer : (formData.defaultTimer || 30)}
+                  onChange={(e) => setFormData({ ...formData, round1Timer: Number(e.target.value) })}
                   className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-bold text-slate-200"
                 >
                   <option value={15}>15 Seconds</option>
                   <option value={20}>20 Seconds</option>
-                  <option value={30}>30 Seconds (Default)</option>
+                  <option value={30}>30 Seconds (Standard)</option>
                   <option value={45}>45 Seconds</option>
                   <option value={60}>60 Seconds</option>
                 </select>
+                <span className="text-[10px] text-slate-500 mt-1 block">Normal Connection round</span>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-300 uppercase mb-1">
-                  Leaderboard Page Rotation (Seconds)
+                <label className="block text-xs font-bold text-purple-400 uppercase mb-1">
+                  Round 2 Default Timer
                 </label>
-                <input
-                  type="number"
-                  min={3}
-                  max={30}
-                  value={formData.leaderboardRotationTime || 6}
-                  onChange={(e) => setFormData({ ...formData, leaderboardRotationTime: Number(e.target.value) })}
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-bold text-slate-200 font-mono"
-                />
+                <select
+                  value={formData.round2Timer !== undefined ? formData.round2Timer : 20}
+                  onChange={(e) => setFormData({ ...formData, round2Timer: Number(e.target.value) })}
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-bold text-slate-200"
+                >
+                  <option value={15}>15 Seconds</option>
+                  <option value={20}>20 Seconds (Standard)</option>
+                  <option value={25}>25 Seconds</option>
+                  <option value={30}>30 Seconds</option>
+                  <option value={45}>45 Seconds</option>
+                </select>
+                <span className="text-[10px] text-slate-500 mt-1 block">Step-by-step unlock round</span>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-rose-400 uppercase mb-1">
+                  Round 3 Default Timer
+                </label>
+                <select
+                  value={formData.round3Timer !== undefined ? formData.round3Timer : 15}
+                  onChange={(e) => setFormData({ ...formData, round3Timer: Number(e.target.value) })}
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-bold text-slate-200"
+                >
+                  <option value={10}>10 Seconds (Fast)</option>
+                  <option value={15}>15 Seconds (Standard)</option>
+                  <option value={20}>20 Seconds</option>
+                  <option value={30}>30 Seconds</option>
+                </select>
+                <span className="text-[10px] text-slate-500 mt-1 block">High-stakes Tie Breaker</span>
               </div>
             </div>
 
-            <div className="pt-2">
-              <label className="flex items-center gap-3 cursor-pointer">
+            <div className="pt-2 space-y-3">
+              <label className="flex items-center gap-3 cursor-pointer p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 hover:border-slate-700 transition-colors">
                 <input
                   type="checkbox"
-                  checked={formData.autoRotateLeaderboard !== false}
-                  onChange={(e) => setFormData({ ...formData, autoRotateLeaderboard: e.target.checked })}
+                  checked={formData.autoStartTimerOnNext !== false}
+                  onChange={(e) => setFormData({ ...formData, autoStartTimerOnNext: e.target.checked })}
                   className="w-4 h-4 accent-amber-500 rounded"
                 />
-                <span className="text-sm font-bold text-slate-300">
-                  Enable automatic cycling of leaderboard pages on Smart Board
-                </span>
+                <div>
+                  <span className="text-sm font-bold text-slate-200 block">
+                    Auto-start timer automatically when advancing to next question
+                  </span>
+                  <span className="text-xs text-slate-400 block">
+                    Begins countdown immediately when clicking Next Question so the host does not have to click Start every time.
+                  </span>
+                </div>
               </label>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 uppercase mb-1">
+                    Leaderboard Page Rotation (Seconds)
+                  </label>
+                  <input
+                    type="number"
+                    min={3}
+                    max={30}
+                    value={formData.leaderboardRotationTime || 6}
+                    onChange={(e) => setFormData({ ...formData, leaderboardRotationTime: Number(e.target.value) })}
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-bold text-slate-200 font-mono"
+                  />
+                </div>
+
+                <div className="flex items-center pt-5">
+                  <label className="flex items-center gap-2.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.autoRotateLeaderboard !== false}
+                      onChange={(e) => setFormData({ ...formData, autoRotateLeaderboard: e.target.checked })}
+                      className="w-4 h-4 accent-amber-500 rounded"
+                    />
+                    <span className="text-xs font-bold text-slate-300">
+                      Auto-cycle leaderboard pages on Smart Board
+                    </span>
+                  </label>
+                </div>
+              </div>
             </div>
           </div>
 

@@ -38,7 +38,22 @@ function computeInitialRevealedCount(question, roundNum) {
   if (count <= 1 || question.revealAllAtStart) {
     return count;
   }
+  if (question.initialRevealedCount !== undefined && question.initialRevealedCount !== null) {
+    const custom = Number(question.initialRevealedCount);
+    if (!isNaN(custom) && custom > 0) {
+      return Math.min(count, custom);
+    }
+  }
   return roundNum === 2 ? 1 : count;
+}
+
+function getRoundDefaultTimer(settings, roundNum) {
+  if (!settings) return 30;
+  const r = Number(roundNum) || 1;
+  if (r === 1) return Number(settings.round1Timer) || Number(settings.defaultTimer) || 30;
+  if (r === 2) return Number(settings.round2Timer) || Number(settings.defaultTimer) || 20;
+  if (r === 3) return Number(settings.round3Timer) || Number(settings.defaultTimer) || 15;
+  return Number(settings.defaultTimer) || 30;
 }
 
 function startServerTimerMonitoring(io, duration) {
@@ -101,10 +116,12 @@ function initSocket(io) {
       try {
         clearServerTimer();
         const state = await storage.getGameState();
+        const settings = await storage.getSettings();
         const roundNum = payload.round ? Number(payload.round) : (state.currentRound || 1);
         const questions = await storage.getQuestions(roundNum);
         const currentQ = questions[state.currentQuestionIndex] || questions[0] || null;
-        const dur = (payload.duration || (currentQ ? currentQ.timerDuration : 30));
+        const roundDefault = getRoundDefaultTimer(settings, roundNum);
+        const dur = (payload.duration || (currentQ && currentQ.timerDuration ? currentQ.timerDuration : roundDefault));
 
         const updatedTimer = {
           duration: dur,
@@ -211,6 +228,7 @@ function initSocket(io) {
       try {
         clearServerTimer();
         const state = await storage.getGameState();
+        const settings = await storage.getSettings();
         const questions = await storage.getQuestions(state.currentRound);
 
         let nextIdx = state.currentQuestionIndex + 1;
@@ -219,10 +237,12 @@ function initSocket(io) {
         }
 
         const nextQuestion = questions[nextIdx] || null;
-        const defaultDur = nextQuestion ? nextQuestion.timerDuration : 30;
+        const roundDefault = getRoundDefaultTimer(settings, state.currentRound);
+        const defaultDur = (nextQuestion && nextQuestion.timerDuration) ? nextQuestion.timerDuration : roundDefault;
         const nextRevealedCount = computeInitialRevealedCount(nextQuestion, state.currentRound);
 
-        const isGameRunning = state.gameStatus === 'RUNNING';
+        const shouldAutoStart = settings.autoStartTimerOnNext !== false;
+        const isGameRunning = state.gameStatus === 'RUNNING' || shouldAutoStart;
         const updatedTimer = isGameRunning ? {
           duration: defaultDur,
           startedAt: Date.now(),
@@ -240,6 +260,7 @@ function initSocket(io) {
         }
 
         const updatedState = {
+          gameStatus: isGameRunning ? 'RUNNING' : state.gameStatus,
           stageView: 'question',
           currentQuestionIndex: nextIdx,
           answerRevealed: false,
@@ -636,16 +657,20 @@ function initSocket(io) {
     socket.on('game:announce-round', async ({ round, title, message }) => {
       try {
         const roundNum = Number(round) || 1;
-        const announcement = {
-          round: roundNum,
-          title: title || `ROUND ${roundNum} HAS COMMENCED!`,
-          message: message || `Round ${roundNum} of the Connection Game has officially begun. Best of luck to all teams!`,
-          timestamp: Date.now()
-        };
-
+        const settings = await storage.getSettings();
         const questions = await storage.getQuestions(roundNum);
         const firstQ = questions[0] || null;
+        const roundDefault = getRoundDefaultTimer(settings, roundNum);
+        const defaultDur = (firstQ && firstQ.timerDuration) ? firstQ.timerDuration : roundDefault;
         const initRevealedCount = computeInitialRevealedCount(firstQ, roundNum);
+
+        const announcement = {
+          round: roundNum,
+          title: title || `ROUND ${roundNum} COMMENCING`,
+          message: message || `Round ${roundNum} of the Connection Game is starting now!`,
+          countdownSeconds: 5,
+          timestamp: Date.now()
+        };
 
         clearServerTimer();
         await storage.updateGameState({
@@ -661,7 +686,7 @@ function initSocket(io) {
           answerRevealed: false,
           revealedCluesCount: initRevealedCount,
           timer: {
-            duration: firstQ ? firstQ.timerDuration : 30,
+            duration: defaultDur,
             startedAt: null,
             pausedAt: null,
             status: 'IDLE'
@@ -674,17 +699,45 @@ function initSocket(io) {
         const syncData = await getFullSyncPayload();
         io.emit('gameStateSync', syncData);
 
-        // Auto-dismiss banner after 8 seconds
+        // Auto-start the round after 5.5-second countdown if announcement wasn't dismissed
         setTimeout(async () => {
           try {
             const current = await storage.getGameState();
             if (current.roundAnnouncement?.timestamp === announcement.timestamp) {
-              await storage.updateGameState({ roundAnnouncement: null });
+              clearServerTimer();
+              startServerTimerMonitoring(io, defaultDur);
+
+              await storage.updateGameState({
+                roundAnnouncement: null,
+                gameStatus: 'RUNNING',
+                currentRound: roundNum,
+                currentQuestionIndex: 0,
+                stageView: 'question',
+                landingVisible: false,
+                leaderboardVisible: false,
+                qualifiersVisible: false,
+                podiumVisible: false,
+                answerRevealed: false,
+                revealedCluesCount: initRevealedCount,
+                timer: {
+                  duration: defaultDur,
+                  startedAt: Date.now(),
+                  pausedAt: null,
+                  status: 'RUNNING'
+                }
+              });
+
+              io.emit('gameStarted', { round: roundNum, timestamp: Date.now() });
+              io.emit('timerStarted', { duration: defaultDur, status: 'RUNNING' });
+              io.emit('triggerAudioEffect', { sound: 'timer-start' });
+
               const freshSync = await getFullSyncPayload();
               io.emit('gameStateSync', freshSync);
             }
-          } catch (e) {}
-        }, 8000);
+          } catch (e) {
+            console.error('Auto-start round error:', e);
+          }
+        }, 5500);
       } catch (err) {
         console.error('game:announce-round error:', err);
       }

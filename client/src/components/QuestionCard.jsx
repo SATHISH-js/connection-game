@@ -8,9 +8,61 @@ import {
   Video as VideoIcon,
   Volume2,
   Globe,
-  BookOpen
+  BookOpen,
+  RotateCcw
 } from 'lucide-react';
 import { audioEngine } from '../services/audioEngine';
+import { resolveMediaUrl } from '../utils/media';
+
+function ClueImageRenderer({ src, alt }) {
+  const [hasError, setHasError] = useState(false);
+  const [retryKey, setRetryKey] = useState(0);
+  const resolvedUrl = resolveMediaUrl(src);
+
+  if (hasError) {
+    return (
+      <div className="relative w-full h-full flex flex-col items-center justify-center p-3 text-center bg-slate-950/90 z-10 select-none">
+        <ImageIcon className="w-8 h-8 text-amber-500/50 mb-1.5 animate-pulse" />
+        <span className="text-[11px] font-bold text-slate-300">Image Preview Unavailable</span>
+        <span className="text-[9px] text-slate-500 font-mono mt-0.5 line-clamp-1 max-w-[180px]">
+          {src}
+        </span>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setHasError(false);
+            setRetryKey(k => k + 1);
+          }}
+          className="mt-2 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 text-[10px] font-bold flex items-center gap-1 border border-slate-700 transition-colors"
+        >
+          <RotateCcw className="w-3 h-3" />
+          <span>Retry Loading</span>
+        </button>
+      </div>
+    );
+  }
+
+  const finalSrc = retryKey > 0 ? `${resolvedUrl}${resolvedUrl.includes('?') ? '&' : '?'}retry=${retryKey}` : resolvedUrl;
+
+  return (
+    <div className="relative w-full h-full flex items-center justify-center overflow-hidden bg-slate-950">
+      <img
+        src={finalSrc}
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 w-full h-full object-cover blur-xl opacity-30 scale-125 pointer-events-none"
+      />
+      <img
+        key={finalSrc}
+        src={finalSrc}
+        alt={alt}
+        className="relative max-w-full max-h-full w-auto h-auto object-contain object-center drop-shadow-2xl group-hover:scale-[1.02] transition-transform duration-500 z-10"
+        onError={() => setHasError(true)}
+      />
+    </div>
+  );
+}
 
 /**
  * Parses a clue whether it is:
@@ -145,14 +197,14 @@ export default function QuestionCard({
           const isRevealed = isRevealAll || idx < activeRevealedLimit;
           const isNewlyRevealed = isRound2 && !isRevealAll && idx === activeRevealedLimit - 1;
 
-          // Dynamic viewport height: 1 clue takes full screen height, 2 clues 50% split, leaving guaranteed room for timer
+          // Fluid height within flex containment: fills available space without spilling over timer or title
           const cardHeightClass = parsedClues.length === 1
-            ? 'h-[48vh] sm:h-[54vh] md:h-[58vh] lg:h-[62vh] max-h-[600px]'
+            ? 'h-full max-h-[62vh] min-h-[220px]'
             : parsedClues.length === 2
-            ? 'h-[44vh] sm:h-[50vh] md:h-[54vh] lg:h-[58vh] max-h-[560px]'
+            ? 'h-full max-h-[58vh] min-h-[200px]'
             : parsedClues.length === 3
-            ? 'h-[40vh] sm:h-[46vh] md:h-[50vh] lg:h-[54vh] max-h-[520px]'
-            : 'h-[36vh] sm:h-[42vh] md:h-[46vh] lg:h-[50vh] max-h-[480px]';
+            ? 'h-full max-h-[54vh] min-h-[180px]'
+            : 'h-full max-h-[50vh] min-h-[160px]';
 
           if (!isRevealed) {
             // Mystery Locked Card in Round 2
@@ -240,7 +292,7 @@ export default function QuestionCard({
               <div className="relative flex-1 min-h-0 w-full rounded-2xl bg-slate-950 border border-slate-800/80 overflow-hidden flex items-center justify-center mb-1.5 group-hover:border-amber-500/50 transition-colors">
                 {clue.video ? (
                   <video
-                    src={clue.video}
+                    src={resolveMediaUrl(clue.video)}
                     autoPlay
                     loop
                     muted
@@ -252,24 +304,10 @@ export default function QuestionCard({
                     }}
                   />
                 ) : clue.image ? (
-                  <div className="relative w-full h-full flex items-center justify-center overflow-hidden bg-slate-950">
-                    {/* Ambient blurred backdrop so portrait/landscape photos blend without void gaps */}
-                    <img
-                      src={clue.image}
-                      alt=""
-                      aria-hidden="true"
-                      className="absolute inset-0 w-full h-full object-cover blur-xl opacity-30 scale-125 pointer-events-none"
-                    />
-                    {/* Sharp, uncropped high-resolution photo filling max available space */}
-                    <img
-                      src={clue.image}
-                      alt={clue.text || `Clue ${idx + 1}`}
-                      className="relative max-w-full max-h-full w-auto h-auto object-contain object-center drop-shadow-2xl group-hover:scale-[1.02] transition-transform duration-500 z-10"
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                      }}
-                    />
-                  </div>
+                  <ClueImageRenderer
+                    src={clue.image}
+                    alt={clue.text || `Clue ${idx + 1}`}
+                  />
                 ) : clue.emoji ? (
                   <div className="flex flex-col items-center justify-center p-2">
                     <span className="text-6xl sm:text-7xl md:text-8xl drop-shadow-2xl group-hover:scale-110 transition-transform duration-300">

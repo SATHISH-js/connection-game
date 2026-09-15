@@ -1,3 +1,5 @@
+import { resolveMediaUrl } from '../utils/media';
+
 // Web Audio API Synthesizer + SpeechSynthesis + Audio File Player
 class AudioEngine {
   constructor() {
@@ -39,8 +41,18 @@ class AudioEngine {
       this.audioCtx.resume();
     }
 
+    // Play an inaudible 1ms buffer to satisfy strict browser autoplay policies
+    if (this.audioCtx && this.audioCtx.state === 'running') {
+      try {
+        const buffer = this.audioCtx.createBuffer(1, 1, 22050);
+        const source = this.audioCtx.createBufferSource();
+        source.buffer = buffer;
+        source.connect(this.audioCtx.destination);
+        source.start(0);
+      } catch (e) {}
+    }
+
     this.isUnlocked = true;
-    console.log('🔊 Audio Engine unlocked successfully.');
     return true;
   }
 
@@ -342,11 +354,12 @@ class AudioEngine {
 
   // Play uploaded audio file (MP3/WAV/OGG)
   playAudioFile(url) {
-    if (this.audioMode === 'silent') return Promise.resolve();
-    return new Promise((resolve, reject) => {
+    if (this.audioMode === 'silent' || !url) return Promise.resolve();
+    return new Promise((resolve) => {
       try {
         this.stopAll();
-        const audio = new Audio(url);
+        const resolvedUrl = resolveMediaUrl(url);
+        const audio = new Audio(resolvedUrl);
         audio.volume = this.volume;
         this.activeAudioElement = audio;
 

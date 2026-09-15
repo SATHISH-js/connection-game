@@ -24,7 +24,7 @@ import AudioControlModal from './AudioControlModal';
 import DisplayMiniPreview from './DisplayMiniPreview';
 
 export default function HostLayout({ children }) {
-  const { gameState, resetGame, showToast, theme, toggleTheme } = useGame();
+  const { gameState, resetGame, showToast, theme, toggleTheme, showMiniPreview, toggleMiniPreview } = useGame();
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [showAudioModal, setShowAudioModal] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -109,6 +109,26 @@ export default function HostLayout({ children }) {
                 <span>Open Display Window</span>
               </div>
               <span className="text-[10px] font-mono text-cyan-400">↗</span>
+            </button>
+
+            <button
+              onClick={toggleMiniPreview}
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold border transition-colors ${
+                showMiniPreview
+                  ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/50 shadow-sm shadow-cyan-500/20'
+                  : 'bg-slate-900/60 hover:bg-slate-800 text-slate-300 border-slate-800'
+              }`}
+              title="Toggle Live Smart Board Mini Floating Window"
+            >
+              <div className="flex items-center gap-2">
+                <Monitor className={`w-3.5 h-3.5 ${showMiniPreview ? 'text-cyan-400 animate-pulse' : 'text-slate-400'}`} />
+                <span>Mini TV Preview</span>
+              </div>
+              <span className={`text-[10px] font-mono uppercase px-1.5 py-0.5 rounded border ${
+                showMiniPreview ? 'bg-cyan-950 border-cyan-700 text-cyan-300' : 'bg-slate-800 border-slate-700 text-slate-500'
+              }`}>
+                {showMiniPreview ? 'ON' : 'OFF'}
+              </span>
             </button>
 
             <button

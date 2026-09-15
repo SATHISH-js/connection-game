@@ -20,3 +20,12 @@ exports.updateSettings = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+exports.getDbStatus = (req, res) => {
+  try {
+    const status = storage.getDbStatus();
+    res.json({ success: true, data: status });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};

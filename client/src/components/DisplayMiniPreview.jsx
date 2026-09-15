@@ -36,11 +36,13 @@ export default function DisplayMiniPreview() {
     teams,
     timerRemaining,
     displayCount,
-    celebrationAudioEvent
+    celebrationAudioEvent,
+    showMiniPreview,
+    setMiniPreviewOpen
   } = useGame();
 
   const [isMinimized, setIsMinimized] = useState(false);
-  const [isOpen, setIsOpen] = useState(true);
+  const isOpen = !!showMiniPreview;
   const [position, setPosition] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
@@ -154,16 +156,7 @@ export default function DisplayMiniPreview() {
   };
 
   if (!isOpen) {
-    return (
-      <button
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-4 right-4 z-40 flex items-center gap-2 px-3 py-2 rounded-2xl bg-slate-900/90 border border-cyan-500/40 text-cyan-300 text-xs font-black shadow-2xl backdrop-blur-xl hover:bg-slate-800 transition-all hover:scale-105"
-        title="Open Live Smart Board Mini Preview"
-      >
-        <Monitor className="w-4 h-4 text-cyan-400 animate-pulse" />
-        <span>SMART BOARD PREVIEW</span>
-      </button>
-    );
+    return null;
   }
 
   const isCelebrationView = gameState.gameStatus === 'FINISHED';
@@ -290,7 +283,7 @@ export default function DisplayMiniPreview() {
             {isMinimized ? <Maximize2 className="w-3.5 h-3.5" /> : <Minimize2 className="w-3.5 h-3.5" />}
           </button>
           <button
-            onClick={() => setIsOpen(false)}
+            onClick={() => setMiniPreviewOpen(false)}
             title="Close Preview Window"
             className="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-rose-400 transition-colors"
           >

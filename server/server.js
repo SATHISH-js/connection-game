@@ -8,6 +8,7 @@ const os = require('os');
 
 const { initStorage } = require('./services/storage');
 const { initSocket } = require('./socket/gameSocket');
+const { generateDefaultAudioFiles } = require('./utils/audioGenerator');
 
 const authRoutes = require('./routes/authRoutes');
 const teamRoutes = require('./routes/teamRoutes');
@@ -91,6 +92,9 @@ function getLocalIpAddress() {
 }
 
 async function start() {
+  // Ensure default synthesizer audio files exist in uploads/
+  generateDefaultAudioFiles();
+
   // Initialize storage (MongoDB or local JSON fallback)
   await initStorage();
 

@@ -586,6 +586,10 @@ const seedSettings = {
   landingCountdownTarget: null,
   landingCountdownActive: false,
   defaultTimer: 30,
+  round1Timer: 30,
+  round2Timer: 20,
+  round3Timer: 15,
+  autoStartTimerOnNext: true,
   hostPin: '1234',
   audioMode: 'full', // 'full' | 'effects' | 'silent'
   masterVolume: 0.85,
