@@ -234,3 +234,62 @@ exports.reorderQuestion = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+exports.exportQuestions = async (req, res) => {
+  try {
+    const questions = await storage.getQuestions();
+    res.json({
+      success: true,
+      timestamp: new Date().toISOString(),
+      count: questions.length,
+      data: questions
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+exports.importQuestions = async (req, res) => {
+  try {
+    const rawData = req.body;
+    const questions = Array.isArray(rawData) ? rawData : (Array.isArray(rawData.questions) ? rawData.questions : (Array.isArray(rawData.data) ? rawData.data : null));
+
+    if (!Array.isArray(questions) || questions.length === 0) {
+      return res.status(400).json({ success: false, message: 'Invalid payload: Array of questions required' });
+    }
+
+    // Sanitize imported questions
+    const sanitized = questions.map((q, idx) => {
+      const roundNum = Number(q.round) || 1;
+      return {
+        id: q.id || `q-r${roundNum}-${uuidv4().substring(0, 8)}`,
+        round: roundNum,
+        questionNumber: Number(q.questionNumber) || (idx + 1),
+        title: (q.title || `Question ${idx + 1}`).trim(),
+        clues: Array.isArray(q.clues) ? q.clues.map(sanitizeClue).filter(Boolean) : [],
+        answerText: (q.answerText || '').trim(),
+        englishText: q.englishText ? String(q.englishText).trim() : '',
+        tamilText: q.tamilText ? String(q.tamilText).trim() : '',
+        ttsClue: q.ttsClue ? String(q.ttsClue).trim() : '',
+        revealAllAtStart: Boolean(q.revealAllAtStart),
+        points: Number(q.points) || 10,
+        timerDuration: Number(q.timerDuration) || 30,
+        answerAudio: q.answerAudio || null,
+        answerAudioEnabled: q.answerAudioEnabled !== undefined ? Boolean(q.answerAudioEnabled) : true,
+        audioType: q.audioType || 'tts',
+        updatedAt: new Date()
+      };
+    });
+
+    await storage.importQuestions(sanitized);
+    broadcastStateChange();
+    res.json({
+      success: true,
+      message: `Successfully imported ${sanitized.length} questions into database.`,
+      count: sanitized.length
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+

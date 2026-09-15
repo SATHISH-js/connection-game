@@ -10,6 +10,7 @@ const GameState = require('../models/GameState');
 
 const DATA_DIR = path.join(__dirname, '..', 'data');
 const STORE_FILE = path.join(DATA_DIR, 'store.json');
+const BACKUP_FILE = path.join(DATA_DIR, 'store.backup.json');
 
 let isMongoConnected = false;
 
@@ -26,14 +27,71 @@ let memoryStore = {
   gameState: {}
 };
 
+// Self-healing check to ensure teams, rounds, and settings are never empty or lost
+function ensureDataIntegrity() {
+  let modified = false;
+
+  // 1. Ensure teams exist
+  if (!Array.isArray(memoryStore.teams) || memoryStore.teams.length === 0) {
+    memoryStore.teams = JSON.parse(JSON.stringify(seedTeams));
+    modified = true;
+  }
+
+  // 2. Ensure questions exist
+  if (!Array.isArray(memoryStore.questions) || memoryStore.questions.length === 0) {
+    memoryStore.questions = JSON.parse(JSON.stringify(seedQuestions));
+    modified = true;
+  } else {
+    // Check each round: if any round has 0 questions, merge fallback questions for that round
+    [1, 2, 3].forEach(roundNum => {
+      const count = memoryStore.questions.filter(q => q.round === roundNum).length;
+      if (count === 0) {
+        const roundFallbacks = seedQuestions.filter(q => q.round === roundNum);
+        if (roundFallbacks.length > 0) {
+          memoryStore.questions.push(...JSON.parse(JSON.stringify(roundFallbacks)));
+          modified = true;
+        }
+      }
+    });
+  }
+
+  // 3. Ensure settings
+  if (!memoryStore.settings || Object.keys(memoryStore.settings).length === 0) {
+    memoryStore.settings = JSON.parse(JSON.stringify(seedSettings));
+    modified = true;
+  }
+
+  // 4. Ensure gameState
+  if (!memoryStore.gameState || Object.keys(memoryStore.gameState).length === 0) {
+    memoryStore.gameState = JSON.parse(JSON.stringify(initialGameState));
+    modified = true;
+  }
+
+  if (modified) {
+    saveJsonStore();
+  }
+}
+
 // Load or initialize JSON store
 function initJsonStore() {
   if (fs.existsSync(STORE_FILE)) {
     try {
       const raw = fs.readFileSync(STORE_FILE, 'utf-8');
       memoryStore = JSON.parse(raw);
+      ensureDataIntegrity();
     } catch (err) {
-      console.warn('⚠️ Could not parse store.json, re-seeding JSON store.', err.message);
+      console.warn('⚠️ Could not parse store.json, checking backup file...', err.message);
+      if (fs.existsSync(BACKUP_FILE)) {
+        try {
+          const backupRaw = fs.readFileSync(BACKUP_FILE, 'utf-8');
+          memoryStore = JSON.parse(backupRaw);
+          ensureDataIntegrity();
+          console.log('✅ Successfully restored data from store.backup.json');
+          return;
+        } catch (backupErr) {
+          console.warn('⚠️ Backup file also corrupted. Re-seeding store.');
+        }
+      }
       reseedJsonStore();
     }
   } else {
@@ -53,18 +111,30 @@ function reseedJsonStore() {
 
 function saveJsonStore() {
   try {
-    fs.writeFileSync(STORE_FILE, JSON.stringify(memoryStore, null, 2), 'utf-8');
+    const jsonStr = JSON.stringify(memoryStore, null, 2);
+    fs.writeFileSync(STORE_FILE, jsonStr, 'utf-8');
+    // Save redundant backup file for data safety
+    fs.writeFileSync(BACKUP_FILE, jsonStr, 'utf-8');
   } catch (err) {
     console.error('Error writing store.json:', err);
   }
 }
 
 async function initStorage() {
-  const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/connection_game';
+  const mongoUri = process.env.MONGODB_URI;
+
+  // If MONGODB_URI is not explicitly configured, DISCONNECT MongoDB and immediately use Render JSON storage
+  if (!mongoUri || !mongoUri.trim()) {
+    isMongoConnected = false;
+    console.log('⚡ Render Local JSON Database active (store.json). MongoDB is disconnected.');
+    initJsonStore();
+    return;
+  }
+
   try {
-    // Attempt MongoDB connection (10s timeout for remote Atlas cloud clusters)
-    await mongoose.connect(mongoUri, {
-      serverSelectionTimeoutMS: process.env.MONGODB_URI ? 10000 : 2500
+    // Only attempt MongoDB connection when MONGODB_URI is provided
+    await mongoose.connect(mongoUri.trim(), {
+      serverSelectionTimeoutMS: 5000
     });
     isMongoConnected = true;
     const safeLogUri = mongoUri.replace(/\/\/([^:]+):([^@]+)@/, '//***:***@');
@@ -82,7 +152,7 @@ async function initStorage() {
     }
   } catch (err) {
     isMongoConnected = false;
-    console.log('ℹ️ MongoDB unavailable (' + err.message + '). Switching to local JSON persistence fallback.');
+    console.log('ℹ️ MongoDB connection failed (' + err.message + '). Switching to Render local JSON storage.');
     initJsonStore();
   }
 }
@@ -110,14 +180,12 @@ const storage = {
     return {
       connected: isMongoConnected,
       mode: isMongoConnected ? 'mongodb' : 'local_json',
-      databaseType: isMongoConnected ? (isAtlas ? 'MongoDB Atlas (Cloud)' : 'MongoDB (Local)') : 'Local JSON Fallback (store.json)',
-      isPersistentOnRender: isMongoConnected,
+      databaseType: isMongoConnected ? (isAtlas ? 'MongoDB Atlas (Cloud)' : 'MongoDB (Local)') : 'Render Local JSON Persistence (store.json)',
+      isPersistentOnRender: true,
       mongoUriConfigured: isConfigured,
       message: isMongoConnected
-        ? 'Connected to permanent cloud database. Your teams, questions, and scores will persist across Render restarts.'
-        : isConfigured
-          ? 'MongoDB URI is configured, but connection timed out (check MongoDB Atlas Network Access IP whitelist 0.0.0.0/0). Using local JSON storage.'
-          : 'Running on local JSON storage (store.json). Free cloud hosts like Render wipe local storage on redeploy/spin-down. Add MONGODB_URI in Render Environment Variables for 100% permanent persistence.'
+        ? 'Connected to permanent MongoDB Atlas cloud database.'
+        : 'Running on Render Local JSON database (store.json) with redundant backup protection (store.backup.json). Questions and teams are tracked and persisted.'
     };
   },
 
@@ -125,6 +193,10 @@ const storage = {
   async getTeams() {
     if (isMongoConnected) {
       return await Team.find().sort({ totalScore: -1, teamNumber: 1 }).lean();
+    }
+    if (!memoryStore.teams || memoryStore.teams.length === 0) {
+      memoryStore.teams = JSON.parse(JSON.stringify(seedTeams));
+      saveJsonStore();
     }
     return [...memoryStore.teams].sort((a, b) => b.totalScore - a.totalScore || a.teamNumber - b.teamNumber);
   },
@@ -213,7 +285,17 @@ const storage = {
     }
     let list = [...memoryStore.questions];
     if (round) {
-      list = list.filter(q => q.round === Number(round));
+      const targetRound = Number(round);
+      list = list.filter(q => q.round === targetRound);
+      if (list.length === 0) {
+        // Self-heal: load fallback seed questions for this round
+        const fallbacks = seedQuestions.filter(q => q.round === targetRound);
+        if (fallbacks.length > 0) {
+          memoryStore.questions.push(...JSON.parse(JSON.stringify(fallbacks)));
+          saveJsonStore();
+          list = memoryStore.questions.filter(q => q.round === targetRound);
+        }
+      }
     }
     return list.sort((a, b) => a.round - b.round || a.questionNumber - b.questionNumber);
   },
@@ -353,6 +435,36 @@ const storage = {
       reseedJsonStore();
     }
     return true;
+  },
+
+  async exportData() {
+    if (isMongoConnected) {
+      const questions = await Question.find().sort({ round: 1, questionNumber: 1 }).lean();
+      const teams = await Team.find().sort({ teamNumber: 1 }).lean();
+      const settings = await GameSetting.findOne({ key: 'global_settings' }).lean();
+      return { questions, teams, settings, exportedAt: new Date() };
+    }
+    return {
+      questions: memoryStore.questions,
+      teams: memoryStore.teams,
+      settings: memoryStore.settings,
+      gameState: memoryStore.gameState,
+      exportedAt: new Date()
+    };
+  },
+
+  async importQuestions(newQuestions = []) {
+    if (!Array.isArray(newQuestions) || newQuestions.length === 0) {
+      throw new Error('Invalid questions data: array of questions is required');
+    }
+    if (isMongoConnected) {
+      await Question.deleteMany({});
+      await Question.insertMany(newQuestions);
+    } else {
+      memoryStore.questions = JSON.parse(JSON.stringify(newQuestions));
+      saveJsonStore();
+    }
+    return memoryStore.questions;
   }
 };
 

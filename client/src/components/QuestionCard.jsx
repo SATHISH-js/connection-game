@@ -178,9 +178,40 @@ export default function QuestionCard({
       </div>
 
       {/* Question Title */}
-      <h1 className="text-base sm:text-xl md:text-2xl lg:text-3xl font-black text-center text-slate-100 mb-1.5 tracking-wide drop-shadow-md px-4 shrink-0 line-clamp-1">
+      <h1 className="text-base sm:text-xl md:text-2xl lg:text-3xl font-black text-center text-slate-100 mb-1 tracking-wide drop-shadow-md px-4 shrink-0 line-clamp-2 max-w-5xl leading-tight">
         {question.title}
       </h1>
+
+      {/* Bilingual Tamil/English & Speech Passage Banner if provided */}
+      {(question.englishText || question.tamilText || question.ttsClue) && (
+        <div className="w-full max-w-4xl mx-auto my-1 px-4 py-2 rounded-2xl bg-gradient-to-r from-amber-500/10 via-slate-900/90 to-cyan-500/10 border border-amber-500/30 flex flex-wrap items-center justify-between gap-3 shrink-0 shadow-lg backdrop-blur-md animate-fade-in">
+          <div className="flex-1 min-w-[220px] space-y-1 text-left">
+            {question.englishText && (
+              <p className="text-sm md:text-base font-bold text-slate-100 flex items-start gap-2">
+                <span className="text-[10px] font-mono font-black text-amber-400 bg-amber-400/10 border border-amber-400/30 px-1.5 py-0.5 rounded mt-0.5 shrink-0">EN</span>
+                <span>{question.englishText}</span>
+              </p>
+            )}
+            {question.tamilText && (
+              <p className="text-sm md:text-base font-bold text-amber-300 flex items-start gap-2">
+                <span className="text-[10px] font-mono font-black text-cyan-400 bg-cyan-400/10 border border-cyan-400/30 px-1.5 py-0.5 rounded mt-0.5 shrink-0">தமிழ்</span>
+                <span>{question.tamilText}</span>
+              </p>
+            )}
+          </div>
+          {question.ttsClue && (
+            <button
+              type="button"
+              onClick={() => audioEngine.speak(question.ttsClue)}
+              className="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 text-xs font-black flex items-center gap-1.5 transition-colors shadow-sm shrink-0"
+              title="Speak Clue"
+            >
+              <Volume2 className="w-4 h-4 text-amber-400 animate-pulse" />
+              <span>Listen Clue</span>
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Flexible Clues Grid: 1 Clue = 100% Full Screen, 2 Clues = 50% Each, 3 Clues = 33%, 4 Clues = 25% */}
       {parsedClues.length > 0 && (
@@ -196,15 +227,16 @@ export default function QuestionCard({
         {parsedClues.map((clue, idx) => {
           const isRevealed = isRevealAll || idx < activeRevealedLimit;
           const isNewlyRevealed = isRound2 && !isRevealAll && idx === activeRevealedLimit - 1;
+          const hasBilingual = Boolean(question.englishText || question.tamilText);
 
           // Fluid height within flex containment: fills available space without spilling over timer or title
           const cardHeightClass = parsedClues.length === 1
-            ? 'h-full max-h-[62vh] min-h-[220px]'
+            ? (hasBilingual ? 'h-full max-h-[52vh] min-h-[200px]' : 'h-full max-h-[58vh] min-h-[220px]')
             : parsedClues.length === 2
-            ? 'h-full max-h-[58vh] min-h-[200px]'
+            ? (hasBilingual ? 'h-full max-h-[48vh] min-h-[180px]' : 'h-full max-h-[54vh] min-h-[200px]')
             : parsedClues.length === 3
-            ? 'h-full max-h-[54vh] min-h-[180px]'
-            : 'h-full max-h-[50vh] min-h-[160px]';
+            ? (hasBilingual ? 'h-full max-h-[44vh] min-h-[160px]' : 'h-full max-h-[50vh] min-h-[180px]')
+            : (hasBilingual ? 'h-full max-h-[40vh] min-h-[140px]' : 'h-full max-h-[46vh] min-h-[160px]');
 
           if (!isRevealed) {
             // Mystery Locked Card in Round 2
@@ -326,7 +358,7 @@ export default function QuestionCard({
 
               {/* Clue Label / Text Caption (Properly Aligned at Bottom) */}
               <div className="shrink-0 text-center px-2 py-0.5">
-                <p className="text-sm sm:text-base md:text-lg font-black text-slate-100 tracking-tight leading-snug group-hover:text-amber-300 transition-colors line-clamp-1">
+                <p className="text-sm sm:text-base md:text-lg font-black text-slate-100 tracking-tight leading-snug group-hover:text-amber-300 transition-colors line-clamp-2">
                   {clue.text || (clue.emoji ? `${clue.emoji} Clue` : `Clue ${idx + 1}`)}
                 </p>
               </div>

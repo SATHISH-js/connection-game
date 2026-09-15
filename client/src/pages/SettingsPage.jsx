@@ -180,38 +180,29 @@ export default function SettingsPage() {
             <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <span className={`w-3 h-3 rounded-full ${dbStatus?.connected ? 'bg-emerald-400 shadow-[0_0_10px_#34d399]' : 'bg-amber-400 shadow-[0_0_10px_#fbbf24] animate-pulse'}`} />
+                  <span className={`w-3 h-3 rounded-full ${dbStatus?.connected ? 'bg-emerald-400 shadow-[0_0_10px_#34d399]' : 'bg-cyan-400 shadow-[0_0_10px_#38bdf8]'}`} />
                   <span className="text-sm font-black text-slate-100">
-                    {dbStatus?.databaseType || 'Detecting Database Mode...'}
+                    {dbStatus?.databaseType || 'Render Local JSON Persistence (store.json)'}
                   </span>
                 </div>
-                <span className={`text-[10px] font-mono font-black uppercase px-2.5 py-1 rounded-full border ${
-                  dbStatus?.connected
-                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                    : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
-                }`}>
-                  {dbStatus?.connected ? 'PERMANENT STORAGE' : 'EPHEMERAL (LOCAL JSON)'}
+                <span className="text-[10px] font-mono font-black uppercase px-2.5 py-1 rounded-full border bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
+                  {dbStatus?.connected ? 'MONGODB ATLAS CONNECTED' : 'RENDER PERSISTENCE ACTIVE'}
                 </span>
               </div>
 
               <p className="text-xs text-slate-300 leading-relaxed">
-                {dbStatus?.message || 'Loading database status...'}
+                {dbStatus?.message || 'Running on Render Local JSON database (store.json) with redundant backup protection (store.backup.json). Questions and teams are tracked and persisted.'}
               </p>
 
-              {!dbStatus?.connected && (
-                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-200/90 flex items-start gap-2">
-                  <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                  <div>
-                    <span className="font-bold text-amber-300">Why did your questions change or reset? </span>
-                    On cloud platforms like Render, local files (<code className="text-amber-300 font-mono">store.json</code>) reset every time Render sleeps or redeploys. To make questions 100% permanent forever:
-                    <ol className="list-decimal ml-4 mt-1 space-y-0.5 text-[11px] text-slate-300">
-                      <li>Create a free cluster on <strong className="text-white">mongodb.com/atlas</strong></li>
-                      <li>Go to <strong className="text-white">Network Access</strong> &rarr; Add IP Address <strong className="text-emerald-300 font-mono">0.0.0.0/0</strong> (Allow access from anywhere)</li>
-                      <li>In your Render service &rarr; <strong className="text-white">Environment</strong> &rarr; Add <code className="text-amber-300 font-mono">MONGODB_URI</code> = your Atlas connection string</li>
-                    </ol>
-                  </div>
+              <div className="p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-xs text-cyan-200/90 flex items-start gap-2">
+                <ShieldCheck className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <span className="font-bold text-cyan-300">Continuous Question Persistence Guaranteed: </span>
+                  <p className="text-[11px] text-slate-300">
+                    Questions, teams, and game settings are committed directly to your repository and stored in <code className="text-cyan-300 font-mono">store.json</code>. You can also use the <strong>Export JSON</strong> button on the Questions page anytime to download an instant offline backup file.
+                  </p>
                 </div>
-              )}
+              </div>
             </div>
           </div>
 

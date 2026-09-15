@@ -20,7 +20,9 @@ import {
   Image as ImageIcon,
   Video as VideoIcon,
   Lock,
-  RotateCcw
+  RotateCcw,
+  Download,
+  Database
 } from 'lucide-react';
 import HostLayout from '../components/HostLayout';
 import { useGame } from '../context/GameContext';
@@ -46,6 +48,14 @@ export default function Questions() {
       const data = await res.json();
       if (data.success) {
         setQuestions(data.data);
+        // Automatic local backup to browser storage
+        if (Array.isArray(data.data) && data.data.length > 0) {
+          try {
+            localStorage.setItem('connection_game_questions_backup', JSON.stringify(data.data));
+          } catch (e) {
+            console.warn('localStorage backup failed', e);
+          }
+        }
       }
     } catch (err) {
       showToast('Error loading questions', 'danger');
@@ -57,6 +67,100 @@ export default function Questions() {
   useEffect(() => {
     fetchQuestions();
   }, []);
+
+  const handleExport = () => {
+    try {
+      const jsonStr = JSON.stringify(questions, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `connection-game-questions-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast(`Exported ${questions.length} questions successfully!`, 'success');
+    } catch (err) {
+      showToast('Failed to export questions', 'danger');
+    }
+  };
+
+  const handleImportFile = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const parsed = JSON.parse(event.target.result);
+        const importedQuestions = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.data) ? parsed.data : parsed.questions);
+        if (!Array.isArray(importedQuestions) || importedQuestions.length === 0) {
+          showToast('Invalid questions file format', 'danger');
+          return;
+        }
+
+        if (!window.confirm(`Import ${importedQuestions.length} questions into database? This will update your questions bank.`)) {
+          return;
+        }
+
+        const res = await fetch('/api/questions/import/all', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-host-pin': pin
+          },
+          body: JSON.stringify({ questions: importedQuestions })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`Successfully imported ${importedQuestions.length} questions!`, 'success');
+          fetchQuestions();
+        } else {
+          showToast(data.message || 'Import failed', 'danger');
+        }
+      } catch (err) {
+        showToast('Error parsing JSON file: ' + err.message, 'danger');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  const handleRestoreBrowserBackup = async () => {
+    try {
+      const backupRaw = localStorage.getItem('connection_game_questions_backup');
+      if (!backupRaw) {
+        showToast('No browser backup found', 'warning');
+        return;
+      }
+      const parsed = JSON.parse(backupRaw);
+      if (!Array.isArray(parsed) || parsed.length === 0) {
+        showToast('Browser backup is empty', 'warning');
+        return;
+      }
+      if (!window.confirm(`Restore ${parsed.length} questions from browser local backup?`)) {
+        return;
+      }
+      const res = await fetch('/api/questions/import/all', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-host-pin': pin
+        },
+        body: JSON.stringify({ questions: parsed })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(`Restored ${parsed.length} questions from browser backup!`, 'success');
+        fetchQuestions();
+      } else {
+        showToast(data.message || 'Restore failed', 'danger');
+      }
+    } catch (err) {
+      showToast('Error restoring backup: ' + err.message, 'danger');
+    }
+  };
 
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this question permanently?')) return;
@@ -170,27 +274,74 @@ export default function Questions() {
             </p>
           </div>
 
-          <button
-            onClick={() => {
-              setEditingQuestion({
-                round: 1,
-                questionNumber: questions.filter(q => q.round === 1).length + 1,
-                title: '',
-                clues: ['', '', '', ''],
-                answerText: '',
-                points: 10,
-                timerDuration: 30,
-                answerAudio: null,
-                answerAudioEnabled: true,
-                audioType: 'tts'
-              });
-              setIsNewModalOpen(true);
-            }}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-sm tracking-wider shadow-lg shadow-amber-500/20 transition-all hover:scale-105"
-          >
-            <Plus className="w-4 h-4" />
-            <span>ADD NEW QUESTION</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Hidden JSON file input */}
+            <input
+              type="file"
+              id="import-questions-input"
+              accept=".json"
+              onChange={handleImportFile}
+              className="hidden"
+            />
+
+            {/* Export JSON Button */}
+            <button
+              type="button"
+              onClick={handleExport}
+              className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-cyan-300 font-bold text-xs border border-cyan-500/30 transition-all shadow-sm hover:border-cyan-400"
+              title="Download full questions JSON file to your computer"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">EXPORT</span> JSON
+            </button>
+
+            {/* Import JSON Button */}
+            <button
+              type="button"
+              onClick={() => document.getElementById('import-questions-input')?.click()}
+              className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-purple-300 font-bold text-xs border border-purple-500/30 transition-all shadow-sm hover:border-purple-400"
+              title="Upload questions JSON file to restore"
+            >
+              <Upload className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">IMPORT</span> JSON
+            </button>
+
+            {/* Restore Browser Backup */}
+            {localStorage.getItem('connection_game_questions_backup') && (
+              <button
+                type="button"
+                onClick={handleRestoreBrowserBackup}
+                className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-emerald-300 font-bold text-xs border border-emerald-500/30 transition-all shadow-sm"
+                title="Restore questions from browser local backup"
+              >
+                <Database className="w-3.5 h-3.5" />
+                <span className="hidden md:inline">RESTORE</span> BACKUP
+              </button>
+            )}
+
+            {/* Add New Question Button */}
+            <button
+              onClick={() => {
+                setEditingQuestion({
+                  round: 1,
+                  questionNumber: questions.filter(q => q.round === 1).length + 1,
+                  title: '',
+                  clues: ['', '', '', ''],
+                  answerText: '',
+                  points: 10,
+                  timerDuration: 30,
+                  answerAudio: null,
+                  answerAudioEnabled: true,
+                  audioType: 'tts'
+                });
+                setIsNewModalOpen(true);
+              }}
+              className="flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-xs sm:text-sm tracking-wider shadow-lg shadow-amber-500/20 transition-all hover:scale-105"
+            >
+              <Plus className="w-4 h-4" />
+              <span>ADD NEW QUESTION</span>
+            </button>
+          </div>
         </div>
 
         {/* Filters and search */}

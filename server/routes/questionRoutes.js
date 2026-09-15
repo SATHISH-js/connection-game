@@ -34,6 +34,8 @@ const mediaUpload = multer({
 });
 
 router.get('/', questionController.getQuestions);
+router.get('/export/all', requireHostAuth, questionController.exportQuestions);
+router.post('/import/all', requireHostAuth, questionController.importQuestions);
 router.get('/:id', questionController.getQuestionById);
 router.post('/upload-media', requireHostAuth, mediaUpload.single('media'), (req, res) => {
   if (!req.file) return res.status(400).json({ success: false, message: 'No media file provided' });
