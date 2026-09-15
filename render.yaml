@@ -11,5 +11,5 @@ services:
         value: production
       - key: HOST_AUTH_PIN
         value: "1234"
-      - key: STORAGE_TYPE
-        value: json
+      - key: MONGODB_URI
+        sync: false
