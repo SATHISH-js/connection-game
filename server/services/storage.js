@@ -44,9 +44,9 @@ function ensureDataIntegrity() {
   } else {
     // Check each round: if any round has 0 questions, merge fallback questions for that round
     [1, 2, 3].forEach(roundNum => {
-      const count = memoryStore.questions.filter(q => q.round === roundNum).length;
+      const count = memoryStore.questions.filter(q => Number(q.round) === roundNum).length;
       if (count === 0) {
-        const roundFallbacks = seedQuestions.filter(q => q.round === roundNum);
+        const roundFallbacks = seedQuestions.filter(q => Number(q.round) === roundNum);
         if (roundFallbacks.length > 0) {
           memoryStore.questions.push(...JSON.parse(JSON.stringify(roundFallbacks)));
           modified = true;
@@ -286,18 +286,18 @@ const storage = {
     let list = [...memoryStore.questions];
     if (round) {
       const targetRound = Number(round);
-      list = list.filter(q => q.round === targetRound);
+      list = list.filter(q => Number(q.round) === targetRound);
       if (list.length === 0) {
         // Self-heal: load fallback seed questions for this round
-        const fallbacks = seedQuestions.filter(q => q.round === targetRound);
+        const fallbacks = seedQuestions.filter(q => Number(q.round) === targetRound);
         if (fallbacks.length > 0) {
           memoryStore.questions.push(...JSON.parse(JSON.stringify(fallbacks)));
           saveJsonStore();
-          list = memoryStore.questions.filter(q => q.round === targetRound);
+          list = memoryStore.questions.filter(q => Number(q.round) === targetRound);
         }
       }
     }
-    return list.sort((a, b) => a.round - b.round || a.questionNumber - b.questionNumber);
+    return list.sort((a, b) => Number(a.round) - Number(b.round) || Number(a.questionNumber) - Number(b.questionNumber));
   },
 
   async getQuestion(id) {

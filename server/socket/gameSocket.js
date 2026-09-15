@@ -8,10 +8,12 @@ let connectedHosts = new Set();
 async function getFullSyncPayload() {
   const gameState = await storage.getGameState();
   const settings = await storage.getSettings();
-  const questions = await storage.getQuestions(gameState.currentRound);
+  const roundNum = Number(gameState.currentRound) || 1;
+  const questions = await storage.getQuestions(roundNum);
   const teams = await storage.getTeams();
 
-  const currentQuestion = questions[gameState.currentQuestionIndex] || null;
+  const safeIdx = Math.max(0, Math.min(Math.max(0, questions.length - 1), Number(gameState.currentQuestionIndex) || 0));
+  const currentQuestion = questions[safeIdx] || null;
 
   return {
     gameState,
@@ -50,10 +52,16 @@ function computeInitialRevealedCount(question, roundNum) {
 function getRoundDefaultTimer(settings, roundNum) {
   if (!settings) return 30;
   const r = Number(roundNum) || 1;
-  if (r === 1) return Number(settings.round1Timer) || Number(settings.defaultTimer) || 30;
-  if (r === 2) return Number(settings.round2Timer) || Number(settings.defaultTimer) || 20;
-  if (r === 3) return Number(settings.round3Timer) || Number(settings.defaultTimer) || 15;
-  return Number(settings.defaultTimer) || 30;
+  let val;
+  if (r === 1) val = Number(settings.round1Timer);
+  else if (r === 2) val = Number(settings.round2Timer);
+  else if (r === 3) val = Number(settings.round3Timer);
+  else val = Number(settings.defaultTimer);
+
+  if (!val || isNaN(val) || val < 5) {
+    val = (r === 1 ? 30 : r === 2 ? 20 : 15);
+  }
+  return Math.max(5, Math.min(60, val));
 }
 
 function startServerTimerMonitoring(io, duration) {
@@ -121,7 +129,7 @@ function initSocket(io) {
         const questions = await storage.getQuestions(roundNum);
         const currentQ = questions[state.currentQuestionIndex] || questions[0] || null;
         const roundDefault = getRoundDefaultTimer(settings, roundNum);
-        const dur = (payload.duration || (currentQ && currentQ.timerDuration ? currentQ.timerDuration : roundDefault));
+        const dur = (payload.duration && Number(payload.duration) > 0) ? Number(payload.duration) : roundDefault;
 
         const updatedTimer = {
           duration: dur,
@@ -184,9 +192,8 @@ function initSocket(io) {
     socket.on('game:new', async ({ resetScores = false } = {}) => {
       try {
         clearServerTimer();
-        const questions = await storage.getQuestions(1);
-        const firstQ = questions[0] || null;
-        const dur = firstQ ? firstQ.timerDuration : 30;
+        const settings = await storage.getSettings();
+        const dur = getRoundDefaultTimer(settings, 1);
 
         if (resetScores) {
           await storage.resetGame({ resetScores: true });
@@ -238,7 +245,7 @@ function initSocket(io) {
 
         const nextQuestion = questions[nextIdx] || null;
         const roundDefault = getRoundDefaultTimer(settings, state.currentRound);
-        const defaultDur = (nextQuestion && nextQuestion.timerDuration) ? nextQuestion.timerDuration : roundDefault;
+        const defaultDur = roundDefault;
         const nextRevealedCount = computeInitialRevealedCount(nextQuestion, state.currentRound);
 
         const shouldAutoStart = settings.autoStartTimerOnNext !== false;
@@ -290,11 +297,13 @@ function initSocket(io) {
       try {
         clearServerTimer();
         const state = await storage.getGameState();
+        const settings = await storage.getSettings();
         const questions = await storage.getQuestions(state.currentRound);
 
         let prevIdx = Math.max(0, state.currentQuestionIndex - 1);
         const prevQuestion = questions[prevIdx] || null;
-        const defaultDur = prevQuestion ? prevQuestion.timerDuration : 30;
+        const roundDefault = getRoundDefaultTimer(settings, state.currentRound);
+        const defaultDur = roundDefault;
         const prevRevealedCount = computeInitialRevealedCount(prevQuestion, state.currentRound);
 
         const isGameRunning = state.gameStatus === 'RUNNING';
@@ -398,8 +407,10 @@ function initSocket(io) {
       try {
         clearServerTimer();
         const roundNum = Number(round);
+        const settings = await storage.getSettings();
         const questions = await storage.getQuestions(roundNum);
         const firstQ = questions[0] || null;
+        const roundDefault = getRoundDefaultTimer(settings, roundNum);
 
         let tieDetected = false;
         let activeTieBreakerTeams = [];
@@ -433,7 +444,7 @@ function initSocket(io) {
           tieDetected,
           activeTieBreakerTeams: activeTieBreakerTeams.length ? activeTieBreakerTeams : undefined,
           timer: {
-            duration: firstQ ? firstQ.timerDuration : 30,
+            duration: roundDefault,
             startedAt: null,
             pausedAt: null,
             status: 'IDLE'
@@ -661,7 +672,7 @@ function initSocket(io) {
         const questions = await storage.getQuestions(roundNum);
         const firstQ = questions[0] || null;
         const roundDefault = getRoundDefaultTimer(settings, roundNum);
-        const defaultDur = (firstQ && firstQ.timerDuration) ? firstQ.timerDuration : roundDefault;
+        const defaultDur = roundDefault;
         const initRevealedCount = computeInitialRevealedCount(firstQ, roundNum);
 
         const announcement = {
@@ -826,12 +837,12 @@ function initSocket(io) {
 
     // --- SERVER TIMER EVENTS ---
 
-    socket.on('timer:start', async ({ duration }) => {
+    socket.on('timer:start', async ({ duration } = {}) => {
       try {
         const state = await storage.getGameState();
-        const questions = await storage.getQuestions(state.currentRound);
-        const currentQ = questions[state.currentQuestionIndex];
-        const dur = Number(duration) || (currentQ ? currentQ.timerDuration : 30);
+        const settings = await storage.getSettings();
+        const roundDefault = getRoundDefaultTimer(settings, state.currentRound);
+        const dur = (duration && Number(duration) > 0) ? Number(duration) : roundDefault;
 
         state.timer = {
           duration: dur,
@@ -917,9 +928,9 @@ function initSocket(io) {
       try {
         clearServerTimer();
         const state = await storage.getGameState();
-        const questions = await storage.getQuestions(state.currentRound);
-        const currentQ = questions[state.currentQuestionIndex];
-        const dur = Number(duration) || (currentQ ? currentQ.timerDuration : 30);
+        const settings = await storage.getSettings();
+        const roundDefault = getRoundDefaultTimer(settings, state.currentRound);
+        const dur = (duration && Number(duration) > 0) ? Number(duration) : roundDefault;
 
         state.timer = {
           duration: dur,

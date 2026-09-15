@@ -54,16 +54,31 @@ exports.stopGame = async (req, res) => {
   }
 };
 
+function getRoundDefaultTimer(settings, roundNum) {
+  if (!settings) return 30;
+  const r = Number(roundNum) || 1;
+  let val;
+  if (r === 1) val = Number(settings.round1Timer);
+  else if (r === 2) val = Number(settings.round2Timer);
+  else if (r === 3) val = Number(settings.round3Timer);
+  else val = Number(settings.defaultTimer);
+  if (!val || isNaN(val) || val < 5) {
+    val = (r === 1 ? 30 : r === 2 ? 20 : 15);
+  }
+  return Math.max(5, Math.min(60, val));
+}
+
 exports.newGame = async (req, res) => {
   try {
     clearServerTimer();
-    const { resetScores } = req.body || {};
+    const { resetScores = false } = req.body;
+    const settings = await storage.getSettings();
+    const r1Timer = getRoundDefaultTimer(settings, 1);
+
     let resetState;
     if (resetScores) {
       resetState = await storage.resetGame({ resetScores: true });
     } else {
-      const questions = await storage.getQuestions(1);
-      const firstQ = questions[0] || null;
       resetState = await storage.updateGameState({
         currentRound: 1,
         currentQuestionIndex: 0,
@@ -74,7 +89,7 @@ exports.newGame = async (req, res) => {
         podiumVisible: false,
         tieDetected: false,
         timer: {
-          duration: firstQ ? firstQ.timerDuration : 30,
+          duration: r1Timer,
           startedAt: null,
           pausedAt: null,
           status: 'IDLE'
@@ -92,6 +107,8 @@ exports.nextQuestion = async (req, res) => {
   try {
     clearServerTimer();
     const state = await storage.getGameState();
+    const settings = await storage.getSettings();
+    const roundDefault = getRoundDefaultTimer(settings, state.currentRound);
     const questions = await storage.getQuestions(state.currentRound);
     let nextIdx = state.currentQuestionIndex + 1;
     if (nextIdx >= questions.length) nextIdx = questions.length - 1;
@@ -105,7 +122,7 @@ exports.nextQuestion = async (req, res) => {
       leaderboardVisible: false,
       podiumVisible: false,
       timer: {
-        duration: nextQ ? nextQ.timerDuration : 30,
+        duration: roundDefault,
         startedAt: null,
         pausedAt: null,
         status: 'IDLE'
@@ -123,6 +140,8 @@ exports.previousQuestion = async (req, res) => {
   try {
     clearServerTimer();
     const state = await storage.getGameState();
+    const settings = await storage.getSettings();
+    const roundDefault = getRoundDefaultTimer(settings, state.currentRound);
     const questions = await storage.getQuestions(state.currentRound);
     let prevIdx = Math.max(0, state.currentQuestionIndex - 1);
 
@@ -135,7 +154,7 @@ exports.previousQuestion = async (req, res) => {
       leaderboardVisible: false,
       podiumVisible: false,
       timer: {
-        duration: prevQ ? prevQ.timerDuration : 30,
+        duration: roundDefault,
         startedAt: null,
         pausedAt: null,
         status: 'IDLE'
@@ -232,6 +251,9 @@ exports.setRound = async (req, res) => {
       }
     }
 
+    const settings = await storage.getSettings();
+    const roundDefault = getRoundDefaultTimer(settings, roundNum);
+
     const updated = await storage.updateGameState({
       currentRound: roundNum,
       currentQuestionIndex: 0,
@@ -242,7 +264,7 @@ exports.setRound = async (req, res) => {
       tieDetected,
       activeTieBreakerTeams: activeTieBreakerTeams.length ? activeTieBreakerTeams : undefined,
       timer: {
-        duration: firstQ ? firstQ.timerDuration : 30,
+        duration: roundDefault,
         startedAt: null,
         pausedAt: null,
         status: 'IDLE'

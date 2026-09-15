@@ -570,17 +570,20 @@ export default function HostDashboard() {
                   )}
 
                   <button
-                    onClick={() => resetTimer()}
+                    onClick={() => {
+                      const roundDefault = gameState.currentRound === 2 ? (settings?.round2Timer || 20) : gameState.currentRound === 3 ? (settings?.round3Timer || 15) : (settings?.round1Timer || 30);
+                      resetTimer(roundDefault);
+                    }}
                     className="py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-black text-xs md:text-sm tracking-wider border border-slate-700 transition-all flex items-center justify-center gap-1.5"
                   >
                     <RotateCcw className="w-4 h-4" />
-                    <span>RESET (30s) [R]</span>
+                    <span>RESET ({gameState.currentRound === 2 ? (settings?.round2Timer || 20) : gameState.currentRound === 3 ? (settings?.round3Timer || 15) : (settings?.round1Timer || 30)}s) [R]</span>
                   </button>
                 </div>
 
-                {/* Presets: 10s, 15s, 20s, 30s, 45s, 60s */}
-                <div className="grid grid-cols-6 gap-1.5">
-                  {[10, 15, 20, 30, 45, 60].map(dur => (
+                {/* Presets: 5s, 10s, 15s, 20s, 30s, 45s, 60s */}
+                <div className="grid grid-cols-7 gap-1">
+                  {[5, 10, 15, 20, 30, 45, 60].map(dur => (
                     <button
                       key={dur}
                       onClick={() => startTimer(dur)}
@@ -883,11 +886,11 @@ export default function HostDashboard() {
             <div className="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 backdrop-blur-xl shadow-xl">
               <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-800">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-black tracking-widest text-amber-400 uppercase">
-                    ACTIVE QUESTION #{gameState.currentQuestionIndex + 1}
-                  </span>
-                  <span className="text-xs text-slate-400 font-mono">
-                    ({totalQuestions} in round)
+                  <span className="text-xs font-black tracking-widest text-amber-400 uppercase flex items-center gap-1.5">
+                    <span>ACTIVE QUESTION</span>
+                    <span className="font-mono text-sm text-yellow-300 font-black">#{gameState.currentQuestionIndex + 1}</span>
+                    <span className="text-slate-500 font-mono">/</span>
+                    <span className="font-mono text-sm text-slate-200 font-bold">{totalQuestions || 1}</span>
                   </span>
                 </div>
                 {gameState.answerRevealed && (

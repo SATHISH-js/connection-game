@@ -155,8 +155,15 @@ export default function QuestionCard({
           {roundNames[currentRound] || `ROUND ${currentRound}`}
         </div>
 
-        <div className="px-3.5 py-1 rounded-full bg-slate-800/80 border border-slate-700/60 text-slate-200 text-xs md:text-sm font-black tracking-widest uppercase">
-          QUESTION {question.questionNumber || questionNumber} {totalQuestions > 0 ? `/ ${totalQuestions}` : ''}
+        <div className="px-4 py-1 rounded-full bg-slate-800/90 border border-slate-700/80 text-slate-100 text-xs md:text-sm font-black tracking-wider uppercase flex items-center gap-1.5 shadow-md">
+          <span>QUESTION</span>
+          <span className="text-amber-400 font-mono font-black text-sm md:text-base">
+            {questionNumber || (question && Number(question.questionNumber)) || 1}
+          </span>
+          <span className="text-slate-500 font-mono text-sm">/</span>
+          <span className="text-slate-200 font-mono font-bold text-sm md:text-base">
+            {(totalQuestions && Number(totalQuestions) > 0) ? Number(totalQuestions) : (question && Number(question.totalQuestions)) || 1}
+          </span>
         </div>
 
         {isRound2 && !question.revealAllAtStart && (

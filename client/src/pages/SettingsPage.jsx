@@ -214,57 +214,112 @@ export default function SettingsPage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-xs font-bold text-amber-400 uppercase mb-1">
-                  Round 1 Default Timer
+              {/* Round 1 Timer */}
+              <div className="p-3 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-2">
+                <label className="block text-xs font-bold text-amber-400 uppercase">
+                  Round 1 Timer (5s - 60s)
                 </label>
                 <select
                   value={formData.round1Timer !== undefined ? formData.round1Timer : (formData.defaultTimer || 30)}
-                  onChange={(e) => setFormData({ ...formData, round1Timer: Number(e.target.value) })}
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-bold text-slate-200"
+                  onChange={(e) => setFormData({ ...formData, round1Timer: Math.max(5, Math.min(60, Number(e.target.value))) })}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs font-bold text-slate-100 focus:border-amber-400"
                 >
-                  <option value={15}>15 Seconds</option>
-                  <option value={20}>20 Seconds</option>
-                  <option value={30}>30 Seconds (Standard)</option>
-                  <option value={45}>45 Seconds</option>
-                  <option value={60}>60 Seconds</option>
+                  {[5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60].map(s => (
+                    <option key={s} value={s}>
+                      {s} Seconds {s === 5 ? '(Min)' : s === 30 ? '(Standard)' : s === 60 ? '(Max)' : ''}
+                    </option>
+                  ))}
                 </select>
-                <span className="text-[10px] text-slate-500 mt-1 block">Normal Connection round</span>
+                <div className="flex items-center justify-between gap-1 pt-1 text-[11px] text-slate-400">
+                  <span>Custom (5-60s):</span>
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="number"
+                      min="5"
+                      max="60"
+                      value={formData.round1Timer !== undefined ? formData.round1Timer : 30}
+                      onChange={(e) => {
+                        const val = Math.max(5, Math.min(60, Number(e.target.value) || 5));
+                        setFormData({ ...formData, round1Timer: val });
+                      }}
+                      className="w-14 px-2 py-0.5 rounded-lg bg-slate-950 border border-slate-700 text-xs font-mono font-bold text-amber-300 text-center"
+                    />
+                    <span className="font-mono text-[10px]">sec</span>
+                  </div>
+                </div>
+                <span className="text-[10px] text-slate-500 block">Normal Connection round</span>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-purple-400 uppercase mb-1">
-                  Round 2 Default Timer
+              {/* Round 2 Timer */}
+              <div className="p-3 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-2">
+                <label className="block text-xs font-bold text-purple-400 uppercase">
+                  Round 2 Timer (5s - 60s)
                 </label>
                 <select
                   value={formData.round2Timer !== undefined ? formData.round2Timer : 20}
-                  onChange={(e) => setFormData({ ...formData, round2Timer: Number(e.target.value) })}
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-bold text-slate-200"
+                  onChange={(e) => setFormData({ ...formData, round2Timer: Math.max(5, Math.min(60, Number(e.target.value))) })}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs font-bold text-slate-100 focus:border-purple-400"
                 >
-                  <option value={15}>15 Seconds</option>
-                  <option value={20}>20 Seconds (Standard)</option>
-                  <option value={25}>25 Seconds</option>
-                  <option value={30}>30 Seconds</option>
-                  <option value={45}>45 Seconds</option>
+                  {[5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60].map(s => (
+                    <option key={s} value={s}>
+                      {s} Seconds {s === 5 ? '(Min)' : s === 20 ? '(Standard)' : s === 60 ? '(Max)' : ''}
+                    </option>
+                  ))}
                 </select>
-                <span className="text-[10px] text-slate-500 mt-1 block">Step-by-step unlock round</span>
+                <div className="flex items-center justify-between gap-1 pt-1 text-[11px] text-slate-400">
+                  <span>Custom (5-60s):</span>
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="number"
+                      min="5"
+                      max="60"
+                      value={formData.round2Timer !== undefined ? formData.round2Timer : 20}
+                      onChange={(e) => {
+                        const val = Math.max(5, Math.min(60, Number(e.target.value) || 5));
+                        setFormData({ ...formData, round2Timer: val });
+                      }}
+                      className="w-14 px-2 py-0.5 rounded-lg bg-slate-950 border border-slate-700 text-xs font-mono font-bold text-purple-300 text-center"
+                    />
+                    <span className="font-mono text-[10px]">sec</span>
+                  </div>
+                </div>
+                <span className="text-[10px] text-slate-500 block">Step-by-step reveal round</span>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-rose-400 uppercase mb-1">
-                  Round 3 Default Timer
+              {/* Round 3 Timer */}
+              <div className="p-3 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-2">
+                <label className="block text-xs font-bold text-rose-400 uppercase">
+                  Round 3 Timer (5s - 60s)
                 </label>
                 <select
                   value={formData.round3Timer !== undefined ? formData.round3Timer : 15}
-                  onChange={(e) => setFormData({ ...formData, round3Timer: Number(e.target.value) })}
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-bold text-slate-200"
+                  onChange={(e) => setFormData({ ...formData, round3Timer: Math.max(5, Math.min(60, Number(e.target.value))) })}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs font-bold text-slate-100 focus:border-rose-400"
                 >
-                  <option value={10}>10 Seconds (Fast)</option>
-                  <option value={15}>15 Seconds (Standard)</option>
-                  <option value={20}>20 Seconds</option>
-                  <option value={30}>30 Seconds</option>
+                  {[5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60].map(s => (
+                    <option key={s} value={s}>
+                      {s} Seconds {s === 5 ? '(Min)' : s === 15 ? '(Standard)' : s === 60 ? '(Max)' : ''}
+                    </option>
+                  ))}
                 </select>
-                <span className="text-[10px] text-slate-500 mt-1 block">High-stakes Tie Breaker</span>
+                <div className="flex items-center justify-between gap-1 pt-1 text-[11px] text-slate-400">
+                  <span>Custom (5-60s):</span>
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="number"
+                      min="5"
+                      max="60"
+                      value={formData.round3Timer !== undefined ? formData.round3Timer : 15}
+                      onChange={(e) => {
+                        const val = Math.max(5, Math.min(60, Number(e.target.value) || 5));
+                        setFormData({ ...formData, round3Timer: val });
+                      }}
+                      className="w-14 px-2 py-0.5 rounded-lg bg-slate-950 border border-slate-700 text-xs font-mono font-bold text-rose-300 text-center"
+                    />
+                    <span className="font-mono text-[10px]">sec</span>
+                  </div>
+                </div>
+                <span className="text-[10px] text-slate-500 block">High-stakes Tie Breaker</span>
               </div>
             </div>
 
