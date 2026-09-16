@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { GameProvider, useGame } from './context/GameContext';
+import { startKeepAliveHeartbeat } from './services/keepAliveClient';
 import Toast from './components/Toast';
 
 import Home from './pages/Home';
@@ -28,6 +29,11 @@ function ProtectedRoute({ children }) {
 
 function AppContent() {
   const { toast } = useGame();
+
+  useEffect(() => {
+    startKeepAliveHeartbeat();
+  }, []);
+
 
   return (
     <>

@@ -1,5 +1,6 @@
 const { storage } = require('../services/storage');
 const { broadcastStateChange } = require('../socket/gameSocket');
+const { keepAliveService } = require('../services/keepAliveService');
 
 exports.getSettings = async (req, res) => {
   try {
@@ -52,3 +53,32 @@ exports.getDbStatus = (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+exports.getKeepAliveStatus = (req, res) => {
+  try {
+    const status = keepAliveService.getStatus();
+    res.json({ success: true, data: status });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+exports.updateKeepAliveConfig = async (req, res) => {
+  try {
+    const { isEnabled, targetUrl, intervalMinutes } = req.body;
+    const status = await keepAliveService.updateConfig({ isEnabled, targetUrl, intervalMinutes });
+    res.json({ success: true, data: status, message: 'Keep-alive configuration updated successfully.' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+exports.testKeepAlivePing = async (req, res) => {
+  try {
+    const result = await keepAliveService.pingNow();
+    res.json({ success: true, data: result, message: result.success ? 'Ping succeeded' : 'Ping encountered an issue' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+

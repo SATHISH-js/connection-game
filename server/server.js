@@ -6,9 +6,11 @@ const cors = require('cors');
 const path = require('path');
 const os = require('os');
 
-const { initStorage } = require('./services/storage');
+const { initStorage, storage } = require('./services/storage');
 const { initSocket } = require('./socket/gameSocket');
 const { generateDefaultAudioFiles } = require('./utils/audioGenerator');
+const { keepAliveService } = require('./services/keepAliveService');
+
 
 const authRoutes = require('./routes/authRoutes');
 const teamRoutes = require('./routes/teamRoutes');
@@ -32,6 +34,12 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
+// Auto-detect incoming host for Render keep-alive
+app.use((req, res, next) => {
+  keepAliveService.detectFromRequest(req);
+  next();
+});
+
 // Static uploads directory
 const uploadsPath = path.join(__dirname, 'uploads');
 app.use('/uploads', express.static(uploadsPath));
@@ -51,9 +59,11 @@ app.get('/api/health', (req, res) => {
     time: Date.now(),
     lanIp: getLocalIpAddress(),
     serverPort: PORT,
-    clientPort: 3000
+    clientPort: 3000,
+    keepAlive: keepAliveService.getStatus()
   });
 });
+
 
 // Serve frontend build if dist exists
 const fs = require('fs');
@@ -97,6 +107,9 @@ async function start() {
 
   // Initialize storage (MongoDB or local JSON fallback)
   await initStorage();
+
+  // Initialize 24/7 Anti-Sleep Keep-Alive Engine
+  await keepAliveService.init(storage);
 
   // Initialize Socket.IO logic
   initSocket(io);

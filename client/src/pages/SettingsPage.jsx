@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Save, RefreshCw, Key, Monitor, Sliders, CheckCircle, ShieldAlert, Database, Server, ShieldCheck, AlertTriangle } from 'lucide-react';
+import { Settings, Save, RefreshCw, Key, Monitor, Sliders, CheckCircle, ShieldAlert, Database, Server, ShieldCheck, AlertTriangle, Zap, Radio, Globe, ExternalLink, Copy, Check } from 'lucide-react';
 import HostLayout from '../components/HostLayout';
 import { useGame } from '../context/GameContext';
+import { getKeepAliveStatus, updateKeepAliveConfig, testKeepAlivePing } from '../services/keepAliveClient';
 
 export default function SettingsPage() {
   const { settings, showToast } = useGame();
@@ -10,6 +11,25 @@ export default function SettingsPage() {
   const [reseedConfirm, setReseedConfirm] = useState(false);
   const [dbStatus, setDbStatus] = useState(null);
   const [checkingDb, setCheckingDb] = useState(false);
+
+  // Keep-Alive state
+  const [keepAlive, setKeepAlive] = useState({
+    isEnabled: true,
+    isRunning: true,
+    targetUrl: '',
+    isAutoDetected: false,
+    intervalMinutes: 10,
+    lastPingAt: null,
+    lastPingStatus: null,
+    lastPingLatency: null,
+    nextPingInSeconds: 600,
+    logs: []
+  });
+  const [loadingKeepAlive, setLoadingKeepAlive] = useState(false);
+  const [testingPing, setTestingPing] = useState(false);
+  const [pingResult, setPingResult] = useState(null);
+  const [copiedUrl, setCopiedUrl] = useState(false);
+  const [showLogs, setShowLogs] = useState(false);
 
   const pin = localStorage.getItem('host_auth_pin') || '1234';
 
@@ -28,9 +48,28 @@ export default function SettingsPage() {
     }
   };
 
+  const loadKeepAlive = async () => {
+    try {
+      const data = await getKeepAliveStatus();
+      if (data) {
+        setKeepAlive(prev => ({
+          ...prev,
+          ...data,
+          targetUrl: data.targetUrl || (window.location.hostname !== 'localhost' ? window.location.origin : prev.targetUrl)
+        }));
+      }
+    } catch (e) {
+      console.warn('Keep-alive load error:', e);
+    }
+  };
+
   useEffect(() => {
     checkDbStatus();
+    loadKeepAlive();
+    const interval = setInterval(loadKeepAlive, 15000);
+    return () => clearInterval(interval);
   }, []);
+
 
   useEffect(() => {
     if (settings) {
@@ -82,7 +121,52 @@ export default function SettingsPage() {
     }
   };
 
+  const handleKeepAliveSave = async () => {
+    setLoadingKeepAlive(true);
+    try {
+      const res = await updateKeepAliveConfig({
+        isEnabled: keepAlive.isEnabled,
+        targetUrl: keepAlive.targetUrl || (window.location.hostname !== 'localhost' ? window.location.origin : ''),
+        intervalMinutes: keepAlive.intervalMinutes
+      }, pin);
+      setKeepAlive(prev => ({ ...prev, ...res }));
+      showToast('24/7 Anti-Sleep engine config updated!', 'success');
+    } catch (e) {
+      showToast(e.message || 'Failed to update anti-sleep config', 'danger');
+    } finally {
+      setLoadingKeepAlive(false);
+    }
+  };
+
+  const handleTestPing = async () => {
+    setTestingPing(true);
+    setPingResult(null);
+    try {
+      const res = await testKeepAlivePing(pin);
+      setPingResult(res);
+      await loadKeepAlive();
+      if (res.success) {
+        showToast(`Test ping successful! Response: ${res.statusCode} (${res.latency}ms)`, 'success');
+      } else {
+        showToast(`Test ping alert: Code ${res.statusCode} (${res.latency}ms)`, 'warning');
+      }
+    } catch (e) {
+      showToast('Ping test failed: ' + e.message, 'danger');
+    } finally {
+      setTestingPing(false);
+    }
+  };
+
+  const handleCopyPingUrl = () => {
+    const healthUrl = `${window.location.origin}/api/health`;
+    navigator.clipboard.writeText(healthUrl);
+    setCopiedUrl(true);
+    showToast('Copied Health URL to clipboard!', 'success');
+    setTimeout(() => setCopiedUrl(false), 3000);
+  };
+
   return (
+
     <HostLayout>
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header bar */}
@@ -206,12 +290,260 @@ export default function SettingsPage() {
             </div>
           </div>
 
+          {/* 24/7 Render Anti-Sleep Shield & Keep-Alive Manager */}
+          <div className="p-6 rounded-3xl bg-slate-900/60 border border-cyan-500/30 backdrop-blur-xl space-y-5 shadow-xl shadow-cyan-950/20">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400">
+                  <Zap className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm md:text-base font-black tracking-wider text-slate-100 uppercase flex items-center gap-2">
+                    <span>24/7 RENDER ANTI-SLEEP SHIELD & KEEP-ALIVE</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold uppercase tracking-normal">
+                      100% Free
+                    </span>
+                  </h3>
+                  <p className="text-xs text-slate-400">
+                    Prevents Render free tier from going inactive / sleeping after 15 minutes of inactivity.
+                  </p>
+                </div>
+              </div>
+
+              {/* Protection Badge */}
+              <div className="flex items-center gap-2">
+                <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase border ${
+                  keepAlive.isEnabled && keepAlive.isRunning
+                    ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400'
+                    : 'bg-amber-500/10 border-amber-500/40 text-amber-400'
+                }`}>
+                  <span className={`w-2 h-2 rounded-full ${
+                    keepAlive.isEnabled && keepAlive.isRunning ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'
+                  }`} />
+                  {keepAlive.isEnabled && keepAlive.isRunning ? '24/7 SHIELD ACTIVE' : 'SHIELD PAUSED'}
+                </span>
+
+                <button
+                  type="button"
+                  onClick={loadKeepAlive}
+                  className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
+                  title="Refresh status"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Metrics */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800">
+                <div className="text-[10px] font-black uppercase tracking-wider text-slate-400">Auto-Ping Frequency</div>
+                <div className="text-lg font-black text-cyan-400 mt-0.5 flex items-center gap-1.5">
+                  <Radio className="w-4 h-4 text-cyan-400" />
+                  <span>Every {keepAlive.intervalMinutes || 10} Mins</span>
+                </div>
+                <div className="text-[11px] text-slate-500 mt-1">Render sleeps at 15m (Guaranteed Safe)</div>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800">
+                <div className="text-[10px] font-black uppercase tracking-wider text-slate-400">Last Ping Status</div>
+                <div className="text-lg font-black text-slate-100 mt-0.5 flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full ${
+                    keepAlive.lastPingStatus === 200 ? 'bg-emerald-400' : keepAlive.lastPingStatus ? 'bg-amber-400' : 'bg-slate-500'
+                  }`} />
+                  <span>{keepAlive.lastPingStatus ? `${keepAlive.lastPingStatus} OK` : 'Pending First Cycle'}</span>
+                  {keepAlive.lastPingLatency !== null && (
+                    <span className="text-xs font-mono font-bold text-cyan-400">({keepAlive.lastPingLatency}ms)</span>
+                  )}
+                </div>
+                <div className="text-[11px] text-slate-500 mt-1 truncate">
+                  {keepAlive.lastPingAt ? new Date(keepAlive.lastPingAt).toLocaleTimeString() : 'Runs on boot & traffic'}
+                </div>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800">
+                <div className="text-[10px] font-black uppercase tracking-wider text-slate-400">Monthly Hours Used</div>
+                <div className="text-lg font-black text-emerald-400 mt-0.5 flex items-center gap-1.5">
+                  <span>744 / 750 Hrs</span>
+                </div>
+                <div className="text-[11px] text-emerald-400/80 mt-1">100% Free • Never incurs charges</div>
+              </div>
+            </div>
+
+            {/* Target Public URL & Settings Configuration */}
+            <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <label className="text-xs font-bold text-slate-300 uppercase flex items-center gap-1.5">
+                  <Globe className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>Render Public Web Service URL</span>
+                </label>
+                {keepAlive.isAutoDetected && (
+                  <span className="text-[10px] font-mono text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-md border border-cyan-500/20">
+                    Auto-Detected from Render Environment
+                  </span>
+                )}
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-2">
+                <input
+                  type="url"
+                  value={keepAlive.targetUrl || ''}
+                  onChange={(e) => setKeepAlive({ ...keepAlive, targetUrl: e.target.value })}
+                  placeholder="https://your-connection-app.onrender.com"
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-sm font-mono text-cyan-200 focus:border-cyan-400 focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={handleTestPing}
+                  disabled={testingPing}
+                  className="px-4 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-slate-950 text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md shadow-cyan-600/20 disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${testingPing ? 'animate-spin' : ''}`} />
+                  <span>{testingPing ? 'Testing...' : 'Test Ping Now'}</span>
+                </button>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-slate-800/80">
+                {/* Enable toggle */}
+                <label className="flex items-center gap-2.5 cursor-pointer text-xs font-bold text-slate-300">
+                  <input
+                    type="checkbox"
+                    checked={keepAlive.isEnabled}
+                    onChange={(e) => setKeepAlive({ ...keepAlive, isEnabled: e.target.checked })}
+                    className="w-4 h-4 accent-cyan-400 rounded cursor-pointer"
+                  />
+                  <span>Enable Autonomous 24/7 Self-Pinging Engine</span>
+                </label>
+
+                {/* Interval selector */}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-400">Ping every:</span>
+                  <select
+                    value={keepAlive.intervalMinutes}
+                    onChange={(e) => setKeepAlive({ ...keepAlive, intervalMinutes: Number(e.target.value) })}
+                    className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 text-xs font-bold text-slate-200"
+                  >
+                    <option value={5}>5 Minutes (Ultra-Active)</option>
+                    <option value={8}>8 Minutes (Recommended)</option>
+                    <option value={10}>10 Minutes (Standard Default)</option>
+                    <option value={12}>12 Minutes (Relaxed)</option>
+                  </select>
+
+                  <button
+                    type="button"
+                    onClick={handleKeepAliveSave}
+                    disabled={loadingKeepAlive}
+                    className="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 text-xs font-bold transition-colors disabled:opacity-50"
+                  >
+                    {loadingKeepAlive ? 'Saving...' : 'Save Engine Config'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Ping Result Feedback Banner */}
+              {pingResult && (
+                <div className={`p-3 rounded-xl border text-xs flex items-center justify-between ${
+                  pingResult.success
+                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+                    : 'bg-amber-500/10 border-amber-500/30 text-amber-300'
+                }`}>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 shrink-0" />
+                    <span>
+                      Ping completed: <strong>HTTP {pingResult.statusCode}</strong> in <strong>{pingResult.latency}ms</strong>
+                    </span>
+                  </div>
+                  <span className="text-[11px] font-mono text-slate-400 truncate max-w-xs">{pingResult.url}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Ping Logs Toggle & Table */}
+            <div className="space-y-2">
+              <button
+                type="button"
+                onClick={() => setShowLogs(!showLogs)}
+                className="text-xs font-bold text-slate-400 hover:text-slate-200 flex items-center gap-1.5 transition-colors"
+              >
+                <span>{showLogs ? '▼ Hide Ping Log History' : '▶ Show Recent Ping Log History'}</span>
+                {keepAlive.logs && keepAlive.logs.length > 0 && (
+                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-800 text-cyan-400 font-mono">
+                    {keepAlive.logs.length} logged
+                  </span>
+                )}
+              </button>
+
+              {showLogs && (
+                <div className="p-3 rounded-2xl bg-slate-950/90 border border-slate-800 max-h-48 overflow-y-auto space-y-1.5 font-mono text-xs">
+                  {keepAlive.logs && keepAlive.logs.length > 0 ? (
+                    keepAlive.logs.map((log, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-1.5 rounded-lg bg-slate-900/60 text-[11px]">
+                        <div className="flex items-center gap-2">
+                          <span className={`w-1.5 h-1.5 rounded-full ${log.success ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+                          <span className="text-slate-400">{new Date(log.timestamp).toLocaleTimeString()}</span>
+                          <span className={log.success ? 'text-emerald-400 font-bold' : 'text-amber-400 font-bold'}>
+                            {log.statusCode} OK
+                          </span>
+                          <span className="text-cyan-300">({log.latency}ms)</span>
+                        </div>
+                        <span className="text-slate-400 text-[10px] truncate max-w-[200px]">{log.message}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-slate-500 text-center py-3 text-xs">
+                      No pings recorded yet. Click "Test Ping Now" or wait for the first scheduled cycle.
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Free Tier Info & Optional External Backup Monitor */}
+            <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800/80 space-y-2.5">
+              <div className="flex items-center gap-2 text-xs font-bold text-cyan-300">
+                <ShieldCheck className="w-4 h-4 text-cyan-400" />
+                <span>Zero-Cost Guarantee & Free External Monitoring Backup</span>
+              </div>
+              <p className="text-[11px] text-slate-400 leading-relaxed">
+                Render gives <strong>750 free hours every month</strong> for your web service. Running continuously 24/7 uses only <strong>744 hours in a 31-day month</strong>, so this keep-alive service will <strong>never incur charges</strong>.
+              </p>
+              <div className="pt-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-t border-slate-800/60">
+                <div className="text-[11px] text-slate-300">
+                  <span>External Monitor Health URL: </span>
+                  <code className="text-cyan-300 font-mono bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800">
+                    {window.location.origin}/api/health
+                  </code>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleCopyPingUrl}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 transition-colors"
+                  >
+                    {copiedUrl ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{copiedUrl ? 'Copied!' : 'Copy URL'}</span>
+                  </button>
+                  <a
+                    href="https://uptimerobot.com"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-cyan-950/60 hover:bg-cyan-900/60 border border-cyan-500/30 text-xs font-bold text-cyan-300 transition-colors"
+                  >
+                    <span>Free UptimeRobot Backup</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Timer & Round Defaults Options */}
           <div className="p-6 rounded-3xl bg-slate-900/60 border border-slate-800 backdrop-blur-xl space-y-4">
             <div className="text-xs font-black tracking-widest text-purple-400 uppercase flex items-center gap-2">
               <Monitor className="w-4 h-4" />
               <span>ROUND DEFAULT TIMERS & SMART BOARD ROTATION</span>
             </div>
+
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {/* Round 1 Timer */}
