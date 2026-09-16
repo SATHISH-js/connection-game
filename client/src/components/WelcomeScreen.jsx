@@ -50,98 +50,106 @@ export default function WelcomeScreen() {
       ];
 
   return (
-    <div className="w-full h-full flex flex-col justify-between items-center text-center px-4 md:px-12 py-6 select-none animate-in fade-in duration-700">
+    <div className="w-full h-full flex flex-col justify-between items-center text-center px-3 sm:px-6 md:px-10 py-3 sm:py-4 select-none animate-in fade-in duration-700 min-h-0">
       {/* Top Section: College, Department, Organised By */}
-      <div className="w-full max-w-5xl space-y-2">
+      <div className="w-full max-w-5xl space-y-1 sm:space-y-1.5 shrink-0">
         {/* College Name */}
-        <div className="flex items-center justify-center gap-2">
-          <GraduationCap className="w-6 h-6 text-amber-400 shrink-0" />
-          <h1 className="text-lg sm:text-2xl md:text-3xl lg:text-4xl font-black text-amber-400 tracking-wider uppercase drop-shadow-lg">
+        <div className="flex items-center justify-center gap-1.5 sm:gap-2">
+          <GraduationCap className="w-5 h-5 sm:w-6 h-6 text-amber-400 shrink-0" />
+          <h1 className="text-base sm:text-xl md:text-2xl lg:text-3xl font-black text-amber-400 tracking-wider uppercase drop-shadow-md">
             {settings.collegeName || 'K.S.R. COLLEGE OF ENGINEERING (AUTONOMOUS)'}
           </h1>
         </div>
 
         {/* Department Name */}
-        <div className="text-sm sm:text-lg md:text-xl font-black text-slate-200 uppercase tracking-wide">
+        <div className="text-xs sm:text-sm md:text-base font-extrabold text-slate-200 uppercase tracking-wide">
           {settings.departmentName || 'DEPARTMENT OF COMPUTER SCIENCE AND ENGINEERING'}
         </div>
 
         {/* Organised By */}
-        <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-slate-900/90 border border-slate-700/80 text-xs sm:text-sm font-bold text-cyan-300 shadow-md">
-          <Users className="w-3.5 h-3.5 text-cyan-400" />
+        <div className="inline-flex items-center gap-1.5 px-3 py-0.5 sm:px-4 sm:py-1 rounded-full bg-slate-900/90 border border-slate-700/80 text-[11px] sm:text-xs font-bold text-cyan-300 shadow-md">
+          <Users className="w-3 h-3 sm:w-3.5 h-3.5 text-cyan-400 shrink-0" />
           <span>{settings.organisedBy || 'ASSOCIATION OF COMPUTER SCIENCE & ENGINEERING — TECHFEST 2026'}</span>
         </div>
 
         {/* Golden Divider */}
-        <div className="w-36 h-1 bg-gradient-to-r from-transparent via-amber-500 to-transparent mx-auto mt-2" />
+        <div className="w-24 sm:w-36 h-0.5 sm:h-1 bg-gradient-to-r from-transparent via-amber-500 to-transparent mx-auto mt-1 sm:mt-1.5" />
       </div>
 
       {/* Middle Section: Big Game Title & Live Countdown Timer */}
-      <div className="my-auto py-4 flex flex-col items-center">
-        <div className="relative inline-block mb-3">
-          <div className="absolute -inset-4 bg-gradient-to-r from-amber-500/20 via-yellow-500/30 to-amber-500/20 blur-2xl rounded-3xl pointer-events-none" />
-          <h2 className="relative text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight text-slate-100 uppercase drop-shadow-2xl">
+      <div className="my-auto py-1 sm:py-2 flex flex-col items-center shrink-0">
+        <div className="relative inline-block mb-1 sm:mb-2">
+          <div className="absolute -inset-3 bg-gradient-to-r from-amber-500/20 via-yellow-500/30 to-amber-500/20 blur-xl rounded-3xl pointer-events-none" />
+          <h2 className={`relative font-black tracking-tight text-slate-100 uppercase drop-shadow-2xl transition-all ${
+            settings.landingCountdownActive && secondsRemaining > 0
+              ? 'text-3xl sm:text-5xl md:text-6xl lg:text-7xl'
+              : 'text-4xl sm:text-6xl md:text-7xl lg:text-8xl'
+          }`}>
             {settings.eventName || 'CONNECTION GAME'}
           </h2>
         </div>
 
-        <p className="text-base sm:text-xl md:text-2xl font-black text-amber-400/90 font-mono tracking-widest uppercase mb-6">
+        <p className="text-xs sm:text-sm md:text-lg font-black text-amber-400/90 font-mono tracking-widest uppercase mb-2 sm:mb-3">
           ⚡ {settings.eventSubtitle || 'Think. Connect. Win.'} ⚡
         </p>
 
-        {/* Live Start Countdown Clock */}
+        {/* Live Start Countdown Clock - Sleek Horizontal Glassmorphic Banner */}
         {settings.landingCountdownActive && secondsRemaining > 0 ? (
-          <div className="flex flex-col items-center p-5 rounded-3xl bg-slate-900/90 border-2 border-cyan-500/50 shadow-2xl shadow-cyan-500/20 backdrop-blur-2xl animate-pulse">
-            <div className="flex items-center gap-2 text-xs sm:text-sm font-black tracking-widest text-cyan-400 uppercase mb-1">
-              <Clock className="w-4 h-4" />
-              <span>THE GAME IS GOING TO START IN</span>
+          <div className="inline-flex items-center gap-2.5 sm:gap-5 px-4 sm:px-7 py-2 sm:py-2.5 rounded-2xl bg-slate-900/95 border-2 border-cyan-400/70 shadow-2xl shadow-cyan-500/25 backdrop-blur-xl animate-pulse">
+            <div className="flex items-center gap-1.5 text-cyan-400">
+              <Clock className="w-4 h-4 sm:w-5 h-5 text-cyan-400 shrink-0" />
+              <span className="text-[11px] sm:text-xs font-black tracking-widest uppercase whitespace-nowrap">
+                STARTING IN:
+              </span>
             </div>
-            <div className="text-4xl sm:text-6xl md:text-7xl font-black font-mono text-cyan-300 tracking-widest drop-shadow-md">
+            <div className="text-3xl sm:text-4xl md:text-5xl font-black font-mono text-cyan-300 tracking-widest drop-shadow-md">
               {formattedCountdown}
             </div>
-            <div className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mt-1">
+            <div className="hidden sm:inline-flex items-center text-[10px] sm:text-xs font-black text-cyan-200 uppercase tracking-wider bg-cyan-950/80 border border-cyan-600/50 px-3 py-1 rounded-full">
               GET READY TEAMS!
             </div>
           </div>
         ) : (
-          <div className="inline-flex items-center gap-3 px-6 py-3 rounded-2xl bg-amber-500/15 border border-amber-500/40 text-amber-300 shadow-xl">
-            <Sparkles className="w-5 h-5 text-amber-400 animate-spin" />
-            <span className="text-sm sm:text-base font-black tracking-wider uppercase">
+          <div className="inline-flex items-center gap-2.5 px-4 sm:px-6 py-1.5 sm:py-2 rounded-2xl bg-amber-500/15 border border-amber-500/40 text-amber-300 shadow-lg">
+            <Sparkles className="w-4 h-4 text-amber-400 animate-spin" />
+            <span className="text-xs sm:text-sm font-black tracking-wider uppercase">
               STANDBY — GAME COMMENCING SHORTLY
             </span>
           </div>
         )}
       </div>
 
-      {/* Bottom Section: Game Rules & Format Carousel / Cards */}
-      <div className="w-full max-w-6xl mt-auto">
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/80 backdrop-blur-2xl p-4 sm:p-5 shadow-2xl text-left">
-          <div className="flex items-center justify-between mb-3 border-b border-slate-800 pb-2">
+      {/* Bottom Section: Game Rules & Format Cards */}
+      <div className="w-full max-w-6xl mt-auto shrink min-h-0">
+        <div className="rounded-2xl border border-slate-800/90 bg-slate-900/85 backdrop-blur-xl p-2.5 sm:p-3.5 md:p-4 shadow-2xl text-left flex flex-col min-h-0">
+          <div className="flex items-center justify-between mb-2 border-b border-slate-800/80 pb-1.5 shrink-0">
             <div className="flex items-center gap-2">
-              <BookOpen className="w-4 h-4 text-amber-400" />
-              <h3 className="text-xs sm:text-sm font-black text-slate-200 tracking-wider uppercase">
+              <BookOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />
+              <h3 className="text-[11px] sm:text-xs md:text-sm font-black text-slate-200 tracking-wider uppercase">
                 OFFICIAL GAME RULES & COMPETITION GUIDELINES
               </h3>
             </div>
-            <span className="text-[10px] font-mono text-slate-400 font-bold uppercase">
+            <span className="text-[9px] sm:text-[10px] font-mono text-slate-400 font-bold uppercase hidden sm:inline-block">
               3 EXCITING ROUNDS • BUZZER SYSTEM
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
-            {rules.map((rule, idx) => (
-              <div
-                key={idx}
-                className="flex items-start gap-2 p-2.5 rounded-xl bg-slate-950/60 border border-slate-800/80 hover:border-amber-500/40 transition-colors"
-              >
-                <span className="text-xs font-mono font-black text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/30 shrink-0 mt-0.5">
-                  #{idx + 1}
-                </span>
-                <p className="text-xs text-slate-300 font-medium leading-relaxed">
-                  {rule}
-                </p>
-              </div>
-            ))}
+          <div className="max-h-[34vh] sm:max-h-[26vh] md:max-h-[28vh] overflow-y-auto pr-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-1.5 sm:gap-2">
+              {rules.map((rule, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-start gap-2 p-2 sm:p-2.5 rounded-xl bg-slate-950/70 border border-slate-800/80 hover:border-amber-500/40 transition-colors"
+                >
+                  <span className="text-[10px] sm:text-xs font-mono font-black text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/30 shrink-0 mt-0.5">
+                    #{idx + 1}
+                  </span>
+                  <p className="text-[11px] sm:text-xs text-slate-300 font-medium leading-snug">
+                    {rule}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

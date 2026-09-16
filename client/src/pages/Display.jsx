@@ -97,7 +97,7 @@ export default function Display() {
           <main className="flex-1 flex flex-col items-center justify-between p-2 sm:p-3 md:p-4 z-10 overflow-hidden min-h-0">
             {isLandingView ? (
               // STAGE VIEW 1: Landing / Welcome Screen (College, Department, Countdown, Rules)
-              <div className="w-full h-full flex flex-col items-center justify-center animate-fade-in">
+              <div className="w-full h-full flex flex-col items-center justify-center animate-fade-in overflow-y-auto min-h-0">
                 <WelcomeScreen />
               </div>
             ) : isQualifiersView ? (

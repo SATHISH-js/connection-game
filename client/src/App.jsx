@@ -16,9 +16,12 @@ import LandingPageEditor from './pages/LandingPageEditor';
 import Display from './pages/Display';
 
 function ProtectedRoute({ children }) {
-  const pin = sessionStorage.getItem('host_auth_pin');
+  const pin = sessionStorage.getItem('host_auth_pin') || localStorage.getItem('host_auth_pin');
   if (!pin) {
     return <Navigate to="/host-login" replace />;
+  }
+  if (!sessionStorage.getItem('host_auth_pin')) {
+    sessionStorage.setItem('host_auth_pin', pin);
   }
   return children;
 }

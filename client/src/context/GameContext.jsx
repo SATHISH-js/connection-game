@@ -29,27 +29,40 @@ export const GameProvider = ({ children, role = 'viewer' }) => {
     masterVolume: 0.85
   });
 
-  const [settings, setSettings] = useState({
-    eventName: 'CONNECTION GAME',
-    eventSubtitle: 'Think. Connect. Win.',
-    collegeName: 'K.S.R. COLLEGE OF ENGINEERING (AUTONOMOUS)',
-    departmentName: 'DEPARTMENT OF COMPUTER SCIENCE AND ENGINEERING',
-    organisedBy: 'ASSOCIATION OF COMPUTER SCIENCE & ENGINEERING — TECHFEST 2026',
-    gameRules: [
-      'Each round presents visual & multimedia clues linked to a hidden connecting entity.',
-      'Round 1: Normal Connection (10 Points per question). All 20+ teams compete.',
-      'Top qualifying teams advance to Round 2 based on Round 1 score rankings.',
-      'Round 2: Sequential Clue Unlocking — clues unlock step-by-step with points for early answers.',
-      'Round 3: High-Stakes Tie Breaker to determine the podium champions.',
-      'Electronic devices strictly prohibited during buzzer rounds. Quiz Master decisions are final.'
-    ],
-    landingCountdownMinutes: 15,
-    landingCountdownTarget: null,
-    landingCountdownActive: false,
-    defaultTimer: 30,
-    autoRotateLeaderboard: true,
-    leaderboardRotationTime: 6,
-    theme: 'dark'
+  const [settings, setSettings] = useState(() => {
+    const baseDefault = {
+      eventName: 'CONNECTION GAME',
+      eventSubtitle: 'Think. Connect. Win.',
+      collegeName: 'K.S.R. COLLEGE OF ENGINEERING (AUTONOMOUS)',
+      departmentName: 'DEPARTMENT OF COMPUTER SCIENCE AND ENGINEERING',
+      organisedBy: 'ASSOCIATION OF COMPUTER SCIENCE & ENGINEERING — TECHFEST 2026',
+      gameRules: [
+        'Each round presents visual & multimedia clues linked to a hidden connecting entity.',
+        'Round 1: Normal Connection (10 Points per question). All 20+ teams compete.',
+        'Top qualifying teams advance to Round 2 based on Round 1 score rankings.',
+        'Round 2: Sequential Clue Unlocking — clues unlock step-by-step with points for early answers.',
+        'Round 3: High-Stakes Tie Breaker to determine the podium champions.',
+        'Electronic devices strictly prohibited during buzzer rounds. Quiz Master decisions are final.'
+      ],
+      landingCountdownMinutes: 15,
+      landingCountdownTarget: null,
+      landingCountdownActive: false,
+      defaultTimer: 30,
+      round1Timer: 30,
+      round2Timer: 20,
+      round3Timer: 15,
+      autoRotateLeaderboard: true,
+      leaderboardRotationTime: 6,
+      theme: 'dark'
+    };
+    try {
+      const saved = localStorage.getItem('connection_game_settings');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return { ...baseDefault, ...parsed };
+      }
+    } catch (e) {}
+    return baseDefault;
   });
 
   const [currentQuestion, setCurrentQuestion] = useState(null);
@@ -97,6 +110,24 @@ export const GameProvider = ({ children, role = 'viewer' }) => {
 
   const toggleTheme = useCallback(() => {
     setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+  }, []);
+
+  // Fetch latest settings from server on initial load to ensure fresh persistence
+  useEffect(() => {
+    fetch('/api/settings')
+      .then(res => res.json())
+      .then(resData => {
+        if (resData && resData.success && resData.data) {
+          setSettings(prev => {
+            const merged = { ...prev, ...resData.data };
+            try {
+              localStorage.setItem('connection_game_settings', JSON.stringify(merged));
+            } catch (e) {}
+            return merged;
+          });
+        }
+      })
+      .catch(err => console.warn('Could not fetch initial settings:', err.message));
   }, []);
 
   const timerTickerRef = useRef(null);
@@ -183,7 +214,13 @@ export const GameProvider = ({ children, role = 'viewer' }) => {
     newSocket.on('gameStateSync', (data) => {
       if (data.gameState) setGameState(data.gameState);
       if (data.settings) {
-        setSettings(data.settings);
+        setSettings(prev => {
+          const merged = { ...prev, ...data.settings };
+          try {
+            localStorage.setItem('connection_game_settings', JSON.stringify(merged));
+          } catch (e) {}
+          return merged;
+        });
         audioEngine.setVolume(data.settings.masterVolume);
         audioEngine.setAudioMode(data.settings.audioMode);
         if (data.settings.soundEffects) {
@@ -469,16 +506,36 @@ export const GameProvider = ({ children, role = 'viewer' }) => {
   }, [socket]);
 
   const updateLandingSettings = useCallback(async (landingData) => {
+    // 1. Immediately update local React state and localStorage so host and display reflect it right away
+    setSettings(prev => {
+      const merged = { ...prev, ...landingData };
+      try {
+        localStorage.setItem('connection_game_settings', JSON.stringify(merged));
+      } catch (e) {}
+      return merged;
+    });
+
+    // 2. Broadcast via Socket.IO immediately to display and all connected clients
     socket?.emit('landing:update', landingData);
-    const pin = localStorage.getItem('host_auth_pin') || '1234';
+
+    // 3. Persist to server database via PUT /api/settings
+    const pin = localStorage.getItem('host_auth_pin') || sessionStorage.getItem('host_auth_pin') || '1234';
     try {
-      await fetch('/api/settings', {
+      const res = await fetch('/api/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'x-host-pin': pin },
         body: JSON.stringify(landingData)
       });
-      showToast('Smart Board landing details updated successfully!', 'success');
-    } catch (e) {}
+      const resData = await res.json();
+      if (resData.success) {
+        showToast('Smart Board landing details saved & broadcasted!', 'success');
+      } else {
+        showToast(resData.message || 'Settings saved locally, server warning', 'warning');
+      }
+    } catch (e) {
+      console.warn('Network error saving landing settings:', e);
+      showToast('Saved locally in browser (offline mode)', 'info');
+    }
   }, [socket, showToast]);
 
   const triggerLandingCountdown = useCallback((minutesOrObj, actionParam) => {

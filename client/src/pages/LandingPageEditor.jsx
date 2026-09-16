@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Monitor,
   Clock,
@@ -13,7 +13,10 @@ import {
   Eye,
   CheckCircle,
   ExternalLink,
-  Sparkles
+  Sparkles,
+  Download,
+  Upload,
+  Save
 } from 'lucide-react';
 import HostLayout from '../components/HostLayout';
 import { useGame } from '../context/GameContext';
@@ -47,17 +50,25 @@ export default function LandingPageEditor() {
   );
   const [countdownMinutes, setCountdownMinutes] = useState(settings.landingCountdownMinutes || 15);
   const [newRuleText, setNewRuleText] = useState('');
+  const [isDirty, setIsDirty] = useState(false);
+  const fileInputRef = useRef(null);
 
-  // Keep local state in sync when settings update from server
+  // Keep local state in sync when settings update from server ONLY IF the user is not actively editing
   useEffect(() => {
-    if (settings.collegeName) setCollegeName(settings.collegeName);
-    if (settings.departmentName) setDepartmentName(settings.departmentName);
-    if (settings.organisedBy) setOrganisedBy(settings.organisedBy);
-    if (settings.eventName) setEventName(settings.eventName);
-    if (settings.eventSubtitle) setEventSubtitle(settings.eventSubtitle);
-    if (settings.gameRules) setRules(settings.gameRules);
-    if (settings.landingCountdownMinutes) setCountdownMinutes(settings.landingCountdownMinutes);
-  }, [settings]);
+    if (!isDirty) {
+      if (settings.collegeName !== undefined) setCollegeName(settings.collegeName || '');
+      if (settings.departmentName !== undefined) setDepartmentName(settings.departmentName || '');
+      if (settings.organisedBy !== undefined) setOrganisedBy(settings.organisedBy || '');
+      if (settings.eventName !== undefined) setEventName(settings.eventName || 'CONNECTION GAME');
+      if (settings.eventSubtitle !== undefined) setEventSubtitle(settings.eventSubtitle || 'Think. Connect. Win.');
+      if (settings.gameRules !== undefined && Array.isArray(settings.gameRules) && settings.gameRules.length > 0) {
+        setRules(settings.gameRules);
+      }
+      if (settings.landingCountdownMinutes !== undefined) {
+        setCountdownMinutes(settings.landingCountdownMinutes || 15);
+      }
+    }
+  }, [settings, isDirty]);
 
   const handleSaveSettings = () => {
     updateLandingSettings({
@@ -69,7 +80,55 @@ export default function LandingPageEditor() {
       gameRules: rules,
       landingCountdownMinutes: Number(countdownMinutes)
     });
-    showToast('Landing Page details saved & broadcasted!', 'success');
+    setIsDirty(false);
+  };
+
+  // Export JSON backup of landing page configuration
+  const handleExportJson = () => {
+    const dataToExport = {
+      collegeName,
+      departmentName,
+      organisedBy,
+      eventName,
+      eventSubtitle,
+      gameRules: rules,
+      landingCountdownMinutes: Number(countdownMinutes),
+      exportedAt: new Date().toISOString()
+    };
+    const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `landing-page-settings-${new Date().toISOString().slice(0, 10)}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+    showToast('Landing page settings exported to JSON file!', 'success');
+  };
+
+  // Import JSON backup
+  const handleImportJson = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const parsed = JSON.parse(evt.target?.result);
+        if (parsed.collegeName !== undefined) setCollegeName(parsed.collegeName);
+        if (parsed.departmentName !== undefined) setDepartmentName(parsed.departmentName);
+        if (parsed.organisedBy !== undefined) setOrganisedBy(parsed.organisedBy);
+        if (parsed.eventName !== undefined) setEventName(parsed.eventName);
+        if (parsed.eventSubtitle !== undefined) setEventSubtitle(parsed.eventSubtitle);
+        if (Array.isArray(parsed.gameRules) && parsed.gameRules.length > 0) setRules(parsed.gameRules);
+        if (parsed.landingCountdownMinutes !== undefined) setCountdownMinutes(parsed.landingCountdownMinutes);
+        setIsDirty(true);
+        showToast('Configuration loaded from JSON! Click "Save & Broadcast" to apply.', 'info');
+      } catch (err) {
+        showToast('Invalid JSON settings file format.', 'danger');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
   };
 
   const handleStartCountdown = (mins) => {
@@ -88,16 +147,19 @@ export default function LandingPageEditor() {
     if (!newRuleText.trim()) return;
     setRules([...rules, newRuleText.trim()]);
     setNewRuleText('');
+    setIsDirty(true);
   };
 
   const handleRemoveRule = (index) => {
     setRules(rules.filter((_, i) => i !== index));
+    setIsDirty(true);
   };
 
   const handleUpdateRule = (index, value) => {
     const updated = [...rules];
     updated[index] = value;
     setRules(updated);
+    setIsDirty(true);
   };
 
   const isLandingActive = gameState.stageView === 'landing' || gameState.landingVisible;
@@ -128,20 +190,50 @@ export default function LandingPageEditor() {
             </div>
           </div>
 
-          {/* Quick Stage View Switchers */}
+          {/* Quick Stage View Switchers & Backup Actions */}
           <div className="flex flex-wrap items-center gap-2.5">
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleImportJson}
+              accept=".json"
+              className="hidden"
+            />
+
             <button
+              type="button"
+              onClick={handleExportJson}
+              title="Download backup file of landing page settings"
+              className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-bold transition-all flex items-center gap-1.5"
+            >
+              <Download className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Export Backup</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              title="Upload and restore backup JSON"
+              className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-bold transition-all flex items-center gap-1.5"
+            >
+              <Upload className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Import Backup</span>
+            </button>
+
+            <button
+              type="button"
               onClick={() => {
                 const w = window.open('/display', 'SmartBoardDisplay', 'width=1920,height=1080,menubar=no,toolbar=no,location=no,status=no');
                 if (w) w.focus();
               }}
-              className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-bold transition-all flex items-center gap-1.5"
+              className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-bold transition-all flex items-center gap-1.5"
             >
-              <ExternalLink className="w-3.5 h-3.5 text-cyan-400" />
+              <ExternalLink className="w-3.5 h-3.5 text-amber-400" />
               <span>Open Display Window</span>
             </button>
 
             <button
+              type="button"
               onClick={() => setStageView(isLandingActive ? 'question' : 'landing')}
               className={`px-4 py-2 rounded-xl text-xs font-black tracking-wider border transition-all flex items-center gap-2 ${
                 isLandingActive
@@ -150,7 +242,7 @@ export default function LandingPageEditor() {
               }`}
             >
               <Eye className="w-4 h-4 fill-current" />
-              <span>{isLandingActive ? 'EXIT LANDING SCREEN (TO QUESTION)' : 'SHOW LANDING ON SMART BOARD'}</span>
+              <span>{isLandingActive ? 'EXIT LANDING SCREEN' : 'SHOW LANDING ON DISPLAY'}</span>
             </button>
           </div>
         </div>
@@ -175,7 +267,7 @@ export default function LandingPageEditor() {
                 <input
                   type="text"
                   value={collegeName}
-                  onChange={(e) => setCollegeName(e.target.value)}
+                  onChange={(e) => { setCollegeName(e.target.value); setIsDirty(true); }}
                   placeholder="e.g. K.S.R. COLLEGE OF ENGINEERING (AUTONOMOUS)"
                   className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm font-bold text-slate-100 placeholder-slate-600 focus:outline-none focus:border-amber-500"
                 />
@@ -190,7 +282,7 @@ export default function LandingPageEditor() {
                 <input
                   type="text"
                   value={departmentName}
-                  onChange={(e) => setDepartmentName(e.target.value)}
+                  onChange={(e) => { setDepartmentName(e.target.value); setIsDirty(true); }}
                   placeholder="e.g. DEPARTMENT OF COMPUTER SCIENCE AND ENGINEERING"
                   className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm font-bold text-slate-100 placeholder-slate-600 focus:outline-none focus:border-amber-500"
                 />
@@ -205,7 +297,7 @@ export default function LandingPageEditor() {
                 <input
                   type="text"
                   value={organisedBy}
-                  onChange={(e) => setOrganisedBy(e.target.value)}
+                  onChange={(e) => { setOrganisedBy(e.target.value); setIsDirty(true); }}
                   placeholder="e.g. ASSOCIATION OF COMPUTER SCIENCE & ENGINEERING — TECHFEST 2026"
                   className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm font-bold text-slate-100 placeholder-slate-600 focus:outline-none focus:border-amber-500"
                 />
@@ -220,7 +312,7 @@ export default function LandingPageEditor() {
                   <input
                     type="text"
                     value={eventName}
-                    onChange={(e) => setEventName(e.target.value)}
+                    onChange={(e) => { setEventName(e.target.value); setIsDirty(true); }}
                     placeholder="CONNECTION GAME"
                     className="w-full px-4 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs font-bold text-slate-100 placeholder-slate-600 focus:outline-none focus:border-amber-500"
                   />
@@ -232,7 +324,7 @@ export default function LandingPageEditor() {
                   <input
                     type="text"
                     value={eventSubtitle}
-                    onChange={(e) => setEventSubtitle(e.target.value)}
+                    onChange={(e) => { setEventSubtitle(e.target.value); setIsDirty(true); }}
                     placeholder="Think. Connect. Win."
                     className="w-full px-4 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs font-bold text-slate-100 placeholder-slate-600 focus:outline-none focus:border-amber-500"
                   />
@@ -283,7 +375,7 @@ export default function LandingPageEditor() {
                     min="1"
                     max="120"
                     value={countdownMinutes}
-                    onChange={(e) => setCountdownMinutes(e.target.value)}
+                    onChange={(e) => { setCountdownMinutes(e.target.value); setIsDirty(true); }}
                     className="w-20 px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono text-slate-100 focus:outline-none focus:border-cyan-500 text-center"
                   />
                   <span className="text-xs text-slate-400 font-bold">MIN</span>
@@ -359,7 +451,20 @@ export default function LandingPageEditor() {
             </div>
 
             {/* Save & Apply Button */}
-            <div className="flex items-center justify-end gap-3 pt-2">
+            <div className="flex items-center justify-between gap-3 pt-2">
+              <div>
+                {isDirty ? (
+                  <span className="text-xs font-bold text-amber-400 flex items-center gap-1.5 animate-pulse">
+                    <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+                    <span>Unsaved edits — Click save to apply</span>
+                  </span>
+                ) : (
+                  <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                    <CheckCircle className="w-3.5 h-3.5" />
+                    <span>Settings synced</span>
+                  </span>
+                )}
+              </div>
               <button
                 onClick={handleSaveSettings}
                 className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-sm tracking-wider shadow-lg shadow-emerald-500/25 transition-all flex items-center justify-center gap-2"
@@ -384,42 +489,43 @@ export default function LandingPageEditor() {
               </div>
 
               {/* Simulated Smart Board Frame */}
-              <div className="rounded-3xl border-2 border-slate-700 bg-gradient-to-b from-[#070a12] via-[#05070d] to-[#020306] p-5 shadow-2xl overflow-hidden relative text-center">
+              <div className="rounded-3xl border-2 border-slate-700 bg-gradient-to-b from-[#070a12] via-[#05070d] to-[#020306] p-4 sm:p-5 shadow-2xl overflow-hidden relative text-center">
                 {/* Ambient lights */}
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-24 bg-amber-500/15 blur-3xl rounded-full pointer-events-none" />
                 <div className="absolute bottom-0 right-1/4 w-48 h-20 bg-cyan-500/15 blur-3xl rounded-full pointer-events-none" />
 
                 {/* College Name */}
-                <div className="text-[11px] sm:text-xs font-black tracking-widest text-amber-400 uppercase drop-shadow mb-1">
+                <div className="text-[11px] sm:text-xs font-black tracking-widest text-amber-400 uppercase drop-shadow mb-0.5">
                   {collegeName || 'COLLEGE NAME'}
                 </div>
 
                 {/* Department Name */}
-                <div className="text-[10px] sm:text-[11px] font-extrabold tracking-wider text-slate-300 uppercase mb-2">
+                <div className="text-[10px] sm:text-[11px] font-extrabold tracking-wider text-slate-300 uppercase mb-1.5">
                   {departmentName || 'DEPARTMENT NAME'}
                 </div>
 
                 {/* Organised By */}
-                <div className="text-[9px] font-bold text-slate-400 tracking-wide mb-4">
+                <div className="text-[9px] font-bold text-slate-400 tracking-wide mb-3">
                   {organisedBy || 'ORGANISED BY'}
                 </div>
 
-                <div className="w-16 h-0.5 bg-gradient-to-r from-transparent via-amber-500 to-transparent mx-auto mb-4" />
+                <div className="w-16 h-0.5 bg-gradient-to-r from-transparent via-amber-500 to-transparent mx-auto mb-3" />
 
                 {/* Big Game Title */}
-                <div className="text-xl sm:text-2xl font-black text-slate-100 tracking-wider mb-1 drop-shadow">
+                <div className="text-lg sm:text-2xl font-black text-slate-100 tracking-wider mb-0.5 drop-shadow">
                   {eventName || 'CONNECTION GAME'}
                 </div>
-                <div className="text-xs text-amber-400/90 font-mono tracking-widest mb-5">
+                <div className="text-[11px] sm:text-xs text-amber-400/90 font-mono tracking-widest mb-3">
                   {eventSubtitle || 'Think. Connect. Win.'}
                 </div>
 
-                {/* Simulated Live Countdown Clock */}
-                <div className="p-3 rounded-2xl bg-cyan-950/40 border border-cyan-500/30 mb-5 max-w-xs mx-auto">
-                  <div className="text-[10px] font-black uppercase tracking-widest text-cyan-400 mb-1">
-                    GAME IS GOING TO START IN
+                {/* Simulated Live Countdown Clock - Compact Horizontal Pill */}
+                <div className="inline-flex items-center justify-center gap-2.5 px-3.5 py-1.5 rounded-xl bg-slate-900/90 border border-cyan-400/60 shadow-md mb-3 mx-auto">
+                  <div className="flex items-center gap-1 text-cyan-400">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span className="text-[9px] font-black uppercase tracking-wider">STARTING IN:</span>
                   </div>
-                  <div className="text-2xl sm:text-3xl font-black font-mono text-cyan-300 tracking-wider">
+                  <div className="text-xl sm:text-2xl font-black font-mono text-cyan-300">
                     {String(countdownMinutes).padStart(2, '0')}:00
                   </div>
                 </div>

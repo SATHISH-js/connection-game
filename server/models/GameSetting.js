@@ -31,9 +31,16 @@ const GameSettingSchema = new mongoose.Schema({
   },
   autoRotateLeaderboard: { type: Boolean, default: true },
   leaderboardRotationTime: { type: Number, default: 6 },
+  collegeName: { type: String, default: 'K.S.R. COLLEGE OF ENGINEERING (AUTONOMOUS)' },
+  departmentName: { type: String, default: 'DEPARTMENT OF COMPUTER SCIENCE AND ENGINEERING' },
+  organisedBy: { type: String, default: 'ASSOCIATION OF COMPUTER SCIENCE & ENGINEERING — TECHFEST 2026' },
+  gameRules: [{ type: String }],
+  landingCountdownMinutes: { type: Number, default: 15 },
+  landingCountdownTarget: { type: Number, default: null },
+  landingCountdownActive: { type: Boolean, default: false },
   displayFullscreen: { type: Boolean, default: false },
   theme: { type: String, default: 'dark' },
   updatedAt: { type: Date, default: Date.now }
-});
+}, { strict: false });
 
 module.exports = mongoose.model('GameSetting', GameSettingSchema);

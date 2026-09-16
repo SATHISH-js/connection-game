@@ -67,6 +67,14 @@ function ensureDataIntegrity() {
   if (!memoryStore.settings || Object.keys(memoryStore.settings).length === 0) {
     memoryStore.settings = JSON.parse(JSON.stringify(seedSettings));
     modified = true;
+  } else {
+    // Preserve all existing settings and merge missing default fields only
+    Object.keys(seedSettings).forEach(key => {
+      if (memoryStore.settings[key] === undefined) {
+        memoryStore.settings[key] = JSON.parse(JSON.stringify(seedSettings[key]));
+        modified = true;
+      }
+    });
   }
 
   // 4. Ensure gameState

@@ -865,7 +865,8 @@
     "leaderboardPageSize": 5,
     "celebrationAudioUrl": "",
     "displayFullscreen": false,
-    "theme": "dark"
+    "theme": "dark",
+    "updatedAt": "2026-09-16T07:19:21.228Z"
   },
   "gameState": {
     "currentRound": 1,
