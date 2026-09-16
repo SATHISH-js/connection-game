@@ -428,148 +428,154 @@
   ],
   "questions": [
     {
-      "id": "q-r1-71e83705",
+      "id": "q-r1-1",
       "round": 1,
       "questionNumber": 1,
-      "title": "title",
+      "title": "The Great Physics Connection",
       "clues": [
         {
-          "text": "Clue 1",
-          "image": "/uploads/media/1789488880063-Screenshot_2026-09-08_121312.png",
-          "video": "",
-          "mediaType": "image",
-          "emoji": ""
+          "text": "🍎 Red Apple",
+          "image": "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=600&auto=format&fit=crop&q=80"
         },
         {
-          "text": "Clue 2",
-          "image": "/uploads/media/1789488884157-Screenshot_2026-09-08_121312.png",
-          "video": "",
-          "mediaType": "image",
-          "emoji": ""
+          "text": "👨 Isaac Newton",
+          "image": "https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=600&auto=format&fit=crop&q=80"
         },
         {
-          "text": "Clue 3",
-          "image": "/uploads/media/1789488889917-Screenshot_2026-09-08_121312.png",
-          "video": "",
-          "mediaType": "image",
-          "emoji": ""
+          "text": "🍂 Falling from a tree",
+          "image": "https://images.unsplash.com/photo-1507499739999-097706ad8914?w=600&auto=format&fit=crop&q=80"
         },
         {
-          "text": "Clue 4",
-          "image": "/uploads/media/1789488895655-Screenshot_2026-09-08_121312.png",
-          "video": "",
-          "mediaType": "image",
-          "emoji": ""
+          "text": "🪐 Planetary Orbits",
+          "image": "https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?w=600&auto=format&fit=crop&q=80"
         }
       ],
-      "answerText": "answer",
-      "englishText": "",
-      "tamilText": "",
-      "ttsClue": "",
-      "revealAllAtStart": false,
+      "answerText": "Gravity",
       "points": 10,
       "timerDuration": 30,
       "answerAudio": null,
       "answerAudioEnabled": true,
-      "audioType": "upload",
-      "createdAt": "2026-09-15T16:15:00.299Z",
-      "updatedAt": "2026-09-15T16:15:00.299Z"
+      "audioType": "tts"
     },
     {
-      "id": "q-r1-3a0bf711",
+      "id": "q-r1-2",
       "round": 1,
       "questionNumber": 2,
-      "title": "title (Copy)",
+      "title": "Celestial Optics",
       "clues": [
         {
-          "text": "Clue 1",
-          "image": "/uploads/media/1789488880063-Screenshot_2026-09-08_121312.png",
-          "video": "",
-          "mediaType": "image",
-          "emoji": ""
+          "text": "🌧️ Rain droplets",
+          "image": "https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=600&auto=format&fit=crop&q=80"
         },
         {
-          "text": "Clue 2",
-          "image": "/uploads/media/1789488884157-Screenshot_2026-09-08_121312.png",
-          "video": "",
-          "mediaType": "image",
-          "emoji": ""
+          "text": "☀️ Direct Sunlight",
+          "image": "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=600&auto=format&fit=crop&q=80"
         },
         {
-          "text": "Clue 3",
-          "image": "/uploads/media/1789488889917-Screenshot_2026-09-08_121312.png",
-          "video": "",
-          "mediaType": "image",
-          "emoji": ""
+          "text": "🔺 Triangular Prism",
+          "image": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&auto=format&fit=crop&q=80"
         },
         {
-          "text": "Clue 4",
-          "image": "/uploads/media/1789488895655-Screenshot_2026-09-08_121312.png",
-          "video": "",
-          "mediaType": "image",
-          "emoji": ""
+          "text": "🌈 Seven Colors (VIBGYOR)",
+          "image": "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=600&auto=format&fit=crop&q=80"
         }
       ],
-      "answerText": "answer",
-      "englishText": "",
-      "tamilText": "",
-      "ttsClue": "",
-      "revealAllAtStart": false,
+      "answerText": "Rainbow",
       "points": 10,
       "timerDuration": 30,
       "answerAudio": null,
       "answerAudioEnabled": true,
-      "audioType": "upload",
-      "createdAt": "2026-09-15T16:20:32.548Z",
-      "updatedAt": "2026-09-15T16:20:32.548Z"
+      "audioType": "tts"
     },
     {
-      "id": "q-r1-d5c5503d",
+      "id": "q-r1-3",
       "round": 1,
       "questionNumber": 3,
-      "title": "title (Copy) (Copy)",
+      "title": "Web Evolution",
       "clues": [
         {
-          "text": "Clue 1",
-          "image": "/uploads/media/1789488880063-Screenshot_2026-09-08_121312.png",
-          "video": "",
-          "mediaType": "image",
-          "emoji": ""
+          "text": "🕸️ World Wide Web inventor",
+          "image": "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600&auto=format&fit=crop&q=80"
         },
         {
-          "text": "Clue 2",
-          "image": "/uploads/media/1789488884157-Screenshot_2026-09-08_121312.png",
-          "video": "",
-          "mediaType": "image",
-          "emoji": ""
+          "text": "🏛️ CERN Laboratory (Switzerland)",
+          "image": "https://images.unsplash.com/photo-1507668077129-56e32842fceb?w=600&auto=format&fit=crop&q=80"
         },
         {
-          "text": "Clue 3",
-          "image": "/uploads/media/1789488889917-Screenshot_2026-09-08_121312.png",
-          "video": "",
-          "mediaType": "image",
-          "emoji": ""
+          "text": "🌐 HTML and HTTP Protocol",
+          "image": "https://images.unsplash.com/photo-1542838132-92c53300491e?w=600&auto=format&fit=crop&q=80"
         },
         {
-          "text": "Clue 4",
-          "image": "/uploads/media/1789488895655-Screenshot_2026-09-08_121312.png",
-          "video": "",
-          "mediaType": "image",
-          "emoji": ""
+          "text": "🎖️ Knighted by Queen Elizabeth II",
+          "image": "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=600&auto=format&fit=crop&q=80"
         }
       ],
-      "answerText": "answer",
-      "englishText": "",
-      "tamilText": "",
-      "ttsClue": "",
-      "revealAllAtStart": false,
+      "answerText": "Tim Berners-Lee",
       "points": 10,
       "timerDuration": 30,
       "answerAudio": null,
       "answerAudioEnabled": true,
-      "audioType": "upload",
-      "createdAt": "2026-09-15T16:20:36.552Z",
-      "updatedAt": "2026-09-15T16:20:36.552Z"
+      "audioType": "tts"
+    },
+    {
+      "id": "q-r1-4",
+      "round": 1,
+      "questionNumber": 4,
+      "title": "Tech Giants & Icons",
+      "clues": [
+        {
+          "text": "🍏 Cupertino Garage 1976",
+          "image": "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=600&auto=format&fit=crop&q=80"
+        },
+        {
+          "text": "📱 Revolutionized Smartphones (2007)",
+          "image": "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&auto=format&fit=crop&q=80"
+        },
+        {
+          "text": "👕 Iconic Black Turtleneck",
+          "image": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=600&auto=format&fit=crop&q=80"
+        },
+        {
+          "text": "💡 Think Different",
+          "image": "https://images.unsplash.com/photo-1493612276216-ee3925520721?w=600&auto=format&fit=crop&q=80"
+        }
+      ],
+      "answerText": "Steve Jobs / Apple",
+      "points": 10,
+      "timerDuration": 30,
+      "answerAudio": null,
+      "answerAudioEnabled": true,
+      "audioType": "tts"
+    },
+    {
+      "id": "q-r1-5",
+      "round": 1,
+      "questionNumber": 5,
+      "title": "Digital Currencies",
+      "clues": [
+        {
+          "text": "⛏️ Distributed Proof of Work",
+          "image": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&auto=format&fit=crop&q=80"
+        },
+        {
+          "text": "📄 Whitepaper published in 2008",
+          "image": "https://images.unsplash.com/photo-1450133064473-71024230f91b?w=600&auto=format&fit=crop&q=80"
+        },
+        {
+          "text": "👤 Anonymous Satoshi Nakamoto",
+          "image": "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=600&auto=format&fit=crop&q=80"
+        },
+        {
+          "text": "💰 Genesis Block with 21 Million limit",
+          "image": "https://images.unsplash.com/photo-1516245834210-c4c142787335?w=600&auto=format&fit=crop&q=80"
+        }
+      ],
+      "answerText": "Bitcoin / Blockchain",
+      "points": 10,
+      "timerDuration": 30,
+      "answerAudio": null,
+      "answerAudioEnabled": true,
+      "audioType": "tts"
     },
     {
       "id": "q-r2-1",
@@ -813,31 +819,68 @@
     }
   ],
   "settings": {
-    "landingCountdownMinutes": 10,
-    "landingCountdownTarget": 1789489303190,
-    "landingCountdownActive": true,
-    "updatedAt": "2026-09-15T16:57:18.099Z",
-    "round1Timer": 15,
-    "eventName": "connection game",
-    "eventSubtitle": "think",
+    "eventName": "SYMPOSIUM 2026 CONNECTION ARENA",
+    "eventSubtitle": "Think. Connect. Win.",
+    "collegeName": "K.S.R. COLLEGE OF ENGINEERING (AUTONOMOUS)",
+    "departmentName": "DEPARTMENT OF COMPUTER SCIENCE AND ENGINEERING",
+    "organisedBy": "ASSOCIATION OF COMPUTER SCIENCE & ENGINEERING — TECHFEST 2026",
+    "gameRules": [
+      "Each round presents visual & multimedia clues linked to a hidden connecting entity.",
+      "Round 1: Normal Connection (10 Points per question). All 20+ teams compete.",
+      "Top qualifying teams advance to Round 2 based on Round 1 score rankings.",
+      "Round 2: Sequential Clue Unlocking — clues unlock step-by-step with points for early answers.",
+      "Round 3: High-Stakes Tie Breaker to determine the podium champions.",
+      "Electronic devices strictly prohibited during buzzer rounds. Quiz Master decisions are final."
+    ],
+    "landingCountdownMinutes": 15,
+    "landingCountdownTarget": null,
+    "landingCountdownActive": false,
+    "defaultTimer": 30,
+    "round1Timer": 30,
+    "round2Timer": 20,
+    "round3Timer": 15,
+    "autoStartTimerOnNext": true,
     "hostPin": "1234",
-    "round2Timer": 15,
-    "round3Timer": 10
+    "audioMode": "full",
+    "masterVolume": 0.85,
+    "effectsEnabled": true,
+    "spokenAnswerEnabled": true,
+    "countdownSoundEnabled": true,
+    "soundEffects": {
+      "gameStart": true,
+      "questionChange": true,
+      "timerStart": true,
+      "countdown": true,
+      "timeUp": true,
+      "answerReveal": true,
+      "spokenAnswer": true,
+      "correctAnswer": true,
+      "wrongAnswer": true,
+      "leaderboard": true,
+      "tieBreaker": true,
+      "winner": true
+    },
+    "autoRotateLeaderboard": true,
+    "leaderboardRotationTime": 6,
+    "leaderboardPageSize": 5,
+    "celebrationAudioUrl": "",
+    "displayFullscreen": false,
+    "theme": "dark"
   },
   "gameState": {
     "currentRound": 1,
-    "currentQuestionIndex": 2,
-    "gameStatus": "RUNNING",
+    "currentQuestionIndex": 0,
+    "gameStatus": "READY",
     "stageView": "question",
     "timer": {
-      "duration": 15,
-      "startedAt": 1789491402676,
+      "duration": 30,
+      "startedAt": null,
       "pausedAt": null,
-      "status": "FINISHED"
+      "status": "IDLE"
     },
     "answerRevealed": false,
     "revealedCluesCount": 4,
-    "landingVisible": false,
+    "landingVisible": true,
     "leaderboardVisible": false,
     "podiumVisible": false,
     "qualifiersVisible": false,
@@ -852,6 +895,6 @@
     ],
     "audioMode": "full",
     "masterVolume": 0.85,
-    "updatedAt": "2026-09-15T16:56:57.877Z"
+    "updatedAt": "2026-09-16T01:55:38.117Z"
   }
 }

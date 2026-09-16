@@ -9,6 +9,7 @@ router.post('/stop', requireHostAuth, gameController.stopGame);
 router.post('/new', requireHostAuth, gameController.newGame);
 router.post('/next', requireHostAuth, gameController.nextQuestion);
 router.post('/previous', requireHostAuth, gameController.previousQuestion);
+router.post('/select-question', requireHostAuth, gameController.selectQuestion);
 router.post('/stage-view', requireHostAuth, gameController.setStageView);
 router.post('/qualifiers', requireHostAuth, gameController.setQualifiers);
 router.post('/announce-round', requireHostAuth, gameController.announceRound);

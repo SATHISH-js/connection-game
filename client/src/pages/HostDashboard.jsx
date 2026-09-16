@@ -59,6 +59,8 @@ export default function HostDashboard() {
     announceRound,
     nextQuestion,
     prevQuestion,
+    selectQuestion,
+    roundQuestions,
     setRound,
     startTimer,
     pauseTimer,
@@ -674,15 +676,53 @@ export default function HostDashboard() {
 
             {/* Question Step Controls */}
             <div className="p-6 rounded-3xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-xl shadow-xl">
-              <div className="text-xs font-black tracking-widest text-slate-400 uppercase mb-4">
-                QUESTION NAVIGATION
+              <div className="flex items-center justify-between mb-3">
+                <div className="text-xs font-black tracking-widest text-slate-400 uppercase">
+                  QUESTION NAVIGATION
+                </div>
+                <div className="text-[11px] font-mono font-bold text-amber-400 bg-slate-950 px-2.5 py-0.5 rounded-lg border border-slate-800">
+                  QUESTION {(Number(gameState.currentQuestionIndex) || 0) + 1} / {totalQuestions || 1}
+                </div>
               </div>
+
+              {/* Interactive Direct Question Jump Pills */}
+              {(totalQuestions > 0 || roundQuestions?.length > 0) && (
+                <div className="mb-4 p-3 rounded-2xl bg-slate-950/60 border border-slate-800/80">
+                  <div className="text-[10px] font-bold text-slate-400 uppercase mb-2 flex items-center justify-between">
+                    <span>Direct Question Jump</span>
+                    <span className="text-[10px] text-slate-500">Click any Q to activate immediately</span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {Array.from({ length: Math.max(totalQuestions || 0, roundQuestions?.length || 0) }).map((_, idx) => {
+                      const isActive = (Number(gameState.currentQuestionIndex) || 0) === idx;
+                      const qInfo = roundQuestions?.[idx];
+                      return (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => selectQuestion(idx)}
+                          title={qInfo?.title ? `Question ${idx + 1}: ${qInfo.title}` : `Jump to Question ${idx + 1}`}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-black font-mono transition-all flex items-center gap-1 ${
+                            isActive
+                              ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/30 scale-105 ring-2 ring-amber-300 font-extrabold'
+                              : 'bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700/60 hover:text-white'
+                          }`}
+                        >
+                          <span>Q{idx + 1}</span>
+                          {isActive && <span className="w-1.5 h-1.5 rounded-full bg-slate-950 animate-ping" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-3 mb-4">
                 <button
                   onClick={prevQuestion}
-                  disabled={gameState.currentQuestionIndex <= 0}
+                  disabled={totalQuestions <= 1}
                   className="py-3.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-black text-sm tracking-wider border border-slate-700 disabled:opacity-40 flex items-center justify-center gap-2 transition-all"
+                  title="Go to previous question (wraps around)"
                 >
                   <ChevronLeft className="w-5 h-5" />
                   <span>PREVIOUS QUESTION [P]</span>
@@ -690,8 +730,9 @@ export default function HostDashboard() {
 
                 <button
                   onClick={nextQuestion}
-                  disabled={gameState.currentQuestionIndex >= totalQuestions - 1}
+                  disabled={totalQuestions <= 1}
                   className="py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-sm tracking-wider shadow-lg shadow-amber-500/20 disabled:opacity-40 flex items-center justify-center gap-2 transition-all"
+                  title="Advance to next question"
                 >
                   <span>NEXT QUESTION [N]</span>
                   <ChevronRight className="w-5 h-5" />
@@ -888,7 +929,7 @@ export default function HostDashboard() {
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-black tracking-widest text-amber-400 uppercase flex items-center gap-1.5">
                     <span>ACTIVE QUESTION</span>
-                    <span className="font-mono text-sm text-yellow-300 font-black">#{gameState.currentQuestionIndex + 1}</span>
+                    <span className="font-mono text-sm text-yellow-300 font-black">#{(Number(gameState.currentQuestionIndex) || 0) + 1}</span>
                     <span className="text-slate-500 font-mono">/</span>
                     <span className="font-mono text-sm text-slate-200 font-bold">{totalQuestions || 1}</span>
                   </span>

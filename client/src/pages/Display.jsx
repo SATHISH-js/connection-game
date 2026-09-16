@@ -127,9 +127,10 @@ export default function Display() {
                 {/* Clues Card Container */}
                 <div className="w-full flex-1 flex flex-col items-center justify-center min-h-0 overflow-hidden py-1">
                   <QuestionCard
+                    key={currentQuestion?.id || currentQuestion?._id || `q-${gameState.currentRound || 1}-${Number(gameState.currentQuestionIndex) || 0}`}
                     question={currentQuestion}
-                    currentRound={gameState.currentRound || 1}
-                    questionNumber={gameState.currentQuestionIndex + 1}
+                    currentRound={Number(gameState.currentRound) || 1}
+                    questionNumber={(Number(gameState.currentQuestionIndex) || 0) + 1}
                     totalQuestions={totalQuestions}
                     revealedCluesCount={gameState.revealedCluesCount !== undefined ? gameState.revealedCluesCount : (gameState.currentRound === 2 ? 1 : 4)}
                   />

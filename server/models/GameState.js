@@ -20,6 +20,6 @@ const GameStateSchema = new mongoose.Schema({
   audioMode: { type: String, default: 'full' },
   masterVolume: { type: Number, default: 0.85 },
   updatedAt: { type: Date, default: Date.now }
-});
+}, { strict: false });
 
 module.exports = mongoose.model('GameState', GameStateSchema);

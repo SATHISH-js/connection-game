@@ -22,6 +22,7 @@ export const SOCKET_EVENTS = {
   GAME_START: 'game:start',
   GAME_NEXT: 'game:next',
   GAME_PREVIOUS: 'game:previous',
+  GAME_SELECT_QUESTION: 'game:select-question',
   GAME_SET_ROUND: 'game:set-round',
   GAME_REVEAL_ANSWER: 'game:reveal-answer',
   GAME_HIDE_ANSWER: 'game:hide-answer',

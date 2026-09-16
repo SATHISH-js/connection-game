@@ -108,14 +108,22 @@ exports.nextQuestion = async (req, res) => {
     clearServerTimer();
     const state = await storage.getGameState();
     const settings = await storage.getSettings();
-    const roundDefault = getRoundDefaultTimer(settings, state.currentRound);
-    const questions = await storage.getQuestions(state.currentRound);
-    let nextIdx = state.currentQuestionIndex + 1;
-    if (nextIdx >= questions.length) nextIdx = questions.length - 1;
+    const roundNum = Number(state.currentRound) || 1;
+    const questions = await storage.getQuestions(roundNum);
+    const roundDefault = getRoundDefaultTimer(settings, roundNum);
+
+    if (!questions || questions.length === 0) {
+      return res.status(400).json({ success: false, message: 'No questions found' });
+    }
+
+    const currentIdx = Math.max(0, Math.min(questions.length - 1, Number(state.currentQuestionIndex) || 0));
+    let nextIdx = currentIdx + 1;
+    if (nextIdx >= questions.length) nextIdx = 0;
 
     const nextQ = questions[nextIdx];
-    const nextRevealedCount = state.currentRound === 2 ? 1 : (nextQ?.clues?.length || 4);
+    const nextRevealedCount = roundNum === 2 ? 1 : (nextQ?.clues?.length || 4);
     const updated = await storage.updateGameState({
+      stageView: 'question',
       currentQuestionIndex: nextIdx,
       answerRevealed: false,
       revealedCluesCount: nextRevealedCount,
@@ -141,16 +149,65 @@ exports.previousQuestion = async (req, res) => {
     clearServerTimer();
     const state = await storage.getGameState();
     const settings = await storage.getSettings();
-    const roundDefault = getRoundDefaultTimer(settings, state.currentRound);
-    const questions = await storage.getQuestions(state.currentRound);
-    let prevIdx = Math.max(0, state.currentQuestionIndex - 1);
+    const roundNum = Number(state.currentRound) || 1;
+    const questions = await storage.getQuestions(roundNum);
+    const roundDefault = getRoundDefaultTimer(settings, roundNum);
+
+    if (!questions || questions.length === 0) {
+      return res.status(400).json({ success: false, message: 'No questions found' });
+    }
+
+    const currentIdx = Math.max(0, Math.min(questions.length - 1, Number(state.currentQuestionIndex) || 0));
+    let prevIdx = currentIdx - 1;
+    if (prevIdx < 0) prevIdx = questions.length - 1;
 
     const prevQ = questions[prevIdx];
-    const prevRevealedCount = state.currentRound === 2 ? 1 : (prevQ?.clues?.length || 4);
+    const prevRevealedCount = roundNum === 2 ? 1 : (prevQ?.clues?.length || 4);
     const updated = await storage.updateGameState({
+      stageView: 'question',
       currentQuestionIndex: prevIdx,
       answerRevealed: false,
       revealedCluesCount: prevRevealedCount,
+      leaderboardVisible: false,
+      podiumVisible: false,
+      timer: {
+        duration: roundDefault,
+        startedAt: null,
+        pausedAt: null,
+        status: 'IDLE'
+      }
+    });
+
+    broadcastStateChange();
+    res.json({ success: true, data: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+exports.selectQuestion = async (req, res) => {
+  try {
+    clearServerTimer();
+    const state = await storage.getGameState();
+    const settings = await storage.getSettings();
+    const roundNum = Number(state.currentRound) || 1;
+    const questions = await storage.getQuestions(roundNum);
+    const roundDefault = getRoundDefaultTimer(settings, roundNum);
+
+    if (!questions || questions.length === 0) {
+      return res.status(400).json({ success: false, message: 'No questions found' });
+    }
+
+    const rawIdx = req.body.questionIndex !== undefined ? req.body.questionIndex : req.params.index;
+    const targetIdx = Math.max(0, Math.min(questions.length - 1, Number(rawIdx) || 0));
+    const targetQ = questions[targetIdx];
+    const revealedCount = roundNum === 2 ? 1 : (targetQ?.clues?.length || 4);
+
+    const updated = await storage.updateGameState({
+      stageView: 'question',
+      currentQuestionIndex: targetIdx,
+      answerRevealed: false,
+      revealedCluesCount: revealedCount,
       leaderboardVisible: false,
       podiumVisible: false,
       timer: {

@@ -44,13 +44,21 @@ function ensureDataIntegrity() {
   } else {
     // Check each round: if any round has 0 questions, merge fallback questions for that round
     [1, 2, 3].forEach(roundNum => {
-      const count = memoryStore.questions.filter(q => Number(q.round) === roundNum).length;
-      if (count === 0) {
+      const rQuestions = memoryStore.questions.filter(q => Number(q.round) === roundNum);
+      if (rQuestions.length === 0) {
         const roundFallbacks = seedQuestions.filter(q => Number(q.round) === roundNum);
         if (roundFallbacks.length > 0) {
           memoryStore.questions.push(...JSON.parse(JSON.stringify(roundFallbacks)));
           modified = true;
         }
+      } else {
+        // Ensure sequential question numbers
+        rQuestions.forEach((q, idx) => {
+          if (q.questionNumber !== idx + 1) {
+            q.questionNumber = idx + 1;
+            modified = true;
+          }
+        });
       }
     });
   }
@@ -65,6 +73,15 @@ function ensureDataIntegrity() {
   if (!memoryStore.gameState || Object.keys(memoryStore.gameState).length === 0) {
     memoryStore.gameState = JSON.parse(JSON.stringify(initialGameState));
     modified = true;
+  } else {
+    if (memoryStore.gameState.currentRound === undefined || memoryStore.gameState.currentRound === null) {
+      memoryStore.gameState.currentRound = 1;
+      modified = true;
+    }
+    if (memoryStore.gameState.currentQuestionIndex === undefined || memoryStore.gameState.currentQuestionIndex === null || isNaN(memoryStore.gameState.currentQuestionIndex)) {
+      memoryStore.gameState.currentQuestionIndex = 0;
+      modified = true;
+    }
   }
 
   if (modified) {
@@ -98,6 +115,9 @@ function initJsonStore() {
     reseedJsonStore();
   }
 }
+
+// Immediately initialize in-memory store so it is never empty on require
+initJsonStore();
 
 function reseedJsonStore() {
   memoryStore = {
@@ -377,9 +397,20 @@ const storage = {
       if (!state) {
         state = await GameState.create(initialGameState);
       }
-      return state;
+      return {
+        ...state,
+        currentRound: Number(state.currentRound) || 1,
+        currentQuestionIndex: Math.max(0, Number(state.currentQuestionIndex) || 0)
+      };
     }
-    return { ...memoryStore.gameState };
+    if (!memoryStore.gameState || Object.keys(memoryStore.gameState).length === 0) {
+      ensureDataIntegrity();
+    }
+    return {
+      ...memoryStore.gameState,
+      currentRound: Number(memoryStore.gameState.currentRound) || 1,
+      currentQuestionIndex: Math.max(0, Number(memoryStore.gameState.currentQuestionIndex) || 0)
+    };
   },
 
   async updateGameState(updates) {

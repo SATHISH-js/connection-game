@@ -54,6 +54,7 @@ export const GameProvider = ({ children, role = 'viewer' }) => {
 
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [totalQuestions, setTotalQuestions] = useState(0);
+  const [roundQuestions, setRoundQuestions] = useState([]);
   const [teams, setTeams] = useState([]);
   const [timerRemaining, setTimerRemaining] = useState(30);
   const [audioUnlocked, setAudioUnlocked] = useState(false);
@@ -191,6 +192,7 @@ export const GameProvider = ({ children, role = 'viewer' }) => {
       }
       if (data.currentQuestion !== undefined) setCurrentQuestion(data.currentQuestion);
       if (data.totalQuestions !== undefined) setTotalQuestions(data.totalQuestions);
+      if (data.roundQuestions) setRoundQuestions(data.roundQuestions);
       if (data.teams) setTeams(data.teams);
       if (data.displayCount !== undefined) setDisplayCount(data.displayCount);
 
@@ -228,12 +230,24 @@ export const GameProvider = ({ children, role = 'viewer' }) => {
     });
 
     // Auto-started timer when question changes or begins
-    newSocket.on('questionChanged', ({ questionIndex, autoStarted, duration }) => {
+    newSocket.on('questionChanged', ({ questionIndex, round, question, totalQuestions: total, autoStarted, duration }) => {
       countdownBeepPlayedRef.current = {};
+      if (question) setCurrentQuestion(question);
+      if (questionIndex !== undefined) {
+        setGameState(prev => ({
+          ...prev,
+          currentRound: round || prev.currentRound,
+          currentQuestionIndex: Number(questionIndex) || 0,
+          stageView: 'question',
+          answerRevealed: false
+        }));
+      }
+      if (total !== undefined) setTotalQuestions(total);
       if (role === 'host') {
+        const qNum = (Number(questionIndex) || 0) + 1;
         const msg = autoStarted
-          ? `Question ${questionIndex + 1} Started! Timer Active (${duration}s)`
-          : `Question ${questionIndex + 1} Ready`;
+          ? `Question ${qNum} Started! Timer Active (${duration}s)`
+          : `Question ${qNum} Ready`;
         showToast(msg, autoStarted ? 'success' : 'info');
         if (autoStarted) {
           audioEngine.playEffect('timer-start');
@@ -324,6 +338,11 @@ export const GameProvider = ({ children, role = 'viewer' }) => {
   const prevQuestion = useCallback(() => {
     countdownBeepPlayedRef.current = {};
     socket?.emit('game:previous');
+  }, [socket]);
+
+  const selectQuestion = useCallback((questionIndex) => {
+    countdownBeepPlayedRef.current = {};
+    socket?.emit('game:select-question', { questionIndex: Number(questionIndex) || 0 });
   }, [socket]);
 
   const setRound = useCallback((round) => {
@@ -555,6 +574,8 @@ export const GameProvider = ({ children, role = 'viewer' }) => {
         dismissAnnouncement,
         nextQuestion,
         prevQuestion,
+        selectQuestion,
+        roundQuestions,
         setRound,
         startTimer,
         pauseTimer,

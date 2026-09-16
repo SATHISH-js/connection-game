@@ -472,7 +472,7 @@ export default function DisplayMiniPreview() {
             <div className="h-full flex flex-col justify-between p-1">
               <div className="flex items-center justify-between text-[10px] pb-1 border-b border-slate-800">
                 <span className="font-black text-amber-400 truncate">
-                  R{gameState.currentRound || 1} • Q{gameState.currentQuestionIndex + 1}/{totalQuestions || 1}
+                  R{Number(gameState.currentRound) || 1} • Q{(Number(gameState.currentQuestionIndex) || 0) + 1}/{totalQuestions || 1}
                 </span>
                 <span className="font-mono font-bold text-cyan-400 bg-cyan-950 px-1.5 py-0.2 rounded border border-cyan-800/40">
                   ⏱ {timerRemaining}s

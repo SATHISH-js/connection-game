@@ -16,9 +16,21 @@ async function getFullSyncPayload() {
   const currentQuestion = questions[safeIdx] || null;
 
   return {
-    gameState,
+    gameState: {
+      ...gameState,
+      currentRound: roundNum,
+      currentQuestionIndex: safeIdx
+    },
     settings,
     currentQuestion,
+    roundQuestions: questions.map((q, idx) => ({
+      id: q.id || q._id,
+      questionNumber: idx + 1,
+      title: q.title,
+      answerText: q.answerText,
+      points: q.points || 10,
+      timerDuration: q.timerDuration || 30
+    })),
     totalQuestions: questions.length,
     teams,
     displayCount: connectedDisplays.size,
@@ -236,17 +248,24 @@ function initSocket(io) {
         clearServerTimer();
         const state = await storage.getGameState();
         const settings = await storage.getSettings();
-        const questions = await storage.getQuestions(state.currentRound);
+        const roundNum = Number(state.currentRound) || 1;
+        const questions = await storage.getQuestions(roundNum);
 
-        let nextIdx = state.currentQuestionIndex + 1;
+        if (!questions || questions.length === 0) {
+          console.warn('game:next: No questions found for round', roundNum);
+          return;
+        }
+
+        const currentIdx = Math.max(0, Math.min(questions.length - 1, Number(state.currentQuestionIndex) || 0));
+        let nextIdx = currentIdx + 1;
         if (nextIdx >= questions.length) {
-          nextIdx = questions.length - 1;
+          nextIdx = 0; // Seamless loop so host is never locked out
         }
 
         const nextQuestion = questions[nextIdx] || null;
-        const roundDefault = getRoundDefaultTimer(settings, state.currentRound);
+        const roundDefault = getRoundDefaultTimer(settings, roundNum);
         const defaultDur = roundDefault;
-        const nextRevealedCount = computeInitialRevealedCount(nextQuestion, state.currentRound);
+        const nextRevealedCount = computeInitialRevealedCount(nextQuestion, roundNum);
 
         const shouldAutoStart = settings.autoStartTimerOnNext !== false;
         const isGameRunning = state.gameStatus === 'RUNNING' || shouldAutoStart;
@@ -269,6 +288,7 @@ function initSocket(io) {
         const updatedState = {
           gameStatus: isGameRunning ? 'RUNNING' : state.gameStatus,
           stageView: 'question',
+          currentRound: roundNum,
           currentQuestionIndex: nextIdx,
           answerRevealed: false,
           revealedCluesCount: nextRevealedCount,
@@ -280,7 +300,14 @@ function initSocket(io) {
         };
 
         await storage.updateGameState(updatedState);
-        io.emit('questionChanged', { questionIndex: nextIdx, autoStarted: isGameRunning, duration: defaultDur });
+        io.emit('questionChanged', {
+          questionIndex: nextIdx,
+          round: roundNum,
+          question: nextQuestion,
+          totalQuestions: questions.length,
+          autoStarted: isGameRunning,
+          duration: defaultDur
+        });
         io.emit('triggerAudioEffect', { sound: isGameRunning ? 'timer-start' : 'question-change' });
         if (isGameRunning) {
           io.emit('timerStarted', { duration: defaultDur, status: 'RUNNING' });
@@ -298,13 +325,21 @@ function initSocket(io) {
         clearServerTimer();
         const state = await storage.getGameState();
         const settings = await storage.getSettings();
-        const questions = await storage.getQuestions(state.currentRound);
+        const roundNum = Number(state.currentRound) || 1;
+        const questions = await storage.getQuestions(roundNum);
 
-        let prevIdx = Math.max(0, state.currentQuestionIndex - 1);
+        if (!questions || questions.length === 0) return;
+
+        const currentIdx = Math.max(0, Math.min(questions.length - 1, Number(state.currentQuestionIndex) || 0));
+        let prevIdx = currentIdx - 1;
+        if (prevIdx < 0) {
+          prevIdx = questions.length - 1;
+        }
+
         const prevQuestion = questions[prevIdx] || null;
-        const roundDefault = getRoundDefaultTimer(settings, state.currentRound);
+        const roundDefault = getRoundDefaultTimer(settings, roundNum);
         const defaultDur = roundDefault;
-        const prevRevealedCount = computeInitialRevealedCount(prevQuestion, state.currentRound);
+        const prevRevealedCount = computeInitialRevealedCount(prevQuestion, roundNum);
 
         const isGameRunning = state.gameStatus === 'RUNNING';
         const updatedTimer = isGameRunning ? {
@@ -325,6 +360,7 @@ function initSocket(io) {
 
         const updatedState = {
           stageView: 'question',
+          currentRound: roundNum,
           currentQuestionIndex: prevIdx,
           answerRevealed: false,
           revealedCluesCount: prevRevealedCount,
@@ -336,7 +372,14 @@ function initSocket(io) {
         };
 
         await storage.updateGameState(updatedState);
-        io.emit('questionChanged', { questionIndex: prevIdx, autoStarted: isGameRunning, duration: defaultDur });
+        io.emit('questionChanged', {
+          questionIndex: prevIdx,
+          round: roundNum,
+          question: prevQuestion,
+          totalQuestions: questions.length,
+          autoStarted: isGameRunning,
+          duration: defaultDur
+        });
         io.emit('triggerAudioEffect', { sound: isGameRunning ? 'timer-start' : 'question-change' });
         if (isGameRunning) {
           io.emit('timerStarted', { duration: defaultDur, status: 'RUNNING' });
@@ -346,6 +389,75 @@ function initSocket(io) {
         io.emit('gameStateSync', syncData);
       } catch (err) {
         console.error('game:previous error:', err);
+      }
+    });
+
+    socket.on('game:select-question', async ({ questionIndex }) => {
+      try {
+        clearServerTimer();
+        const state = await storage.getGameState();
+        const settings = await storage.getSettings();
+        const roundNum = Number(state.currentRound) || 1;
+        const questions = await storage.getQuestions(roundNum);
+
+        if (!questions || questions.length === 0) return;
+
+        const targetIdx = Math.max(0, Math.min(questions.length - 1, Number(questionIndex) || 0));
+        const selectedQ = questions[targetIdx] || null;
+        const roundDefault = getRoundDefaultTimer(settings, roundNum);
+        const defaultDur = roundDefault;
+        const nextRevealedCount = computeInitialRevealedCount(selectedQ, roundNum);
+
+        const shouldAutoStart = settings.autoStartTimerOnNext !== false;
+        const isGameRunning = state.gameStatus === 'RUNNING' || shouldAutoStart;
+        const updatedTimer = isGameRunning ? {
+          duration: defaultDur,
+          startedAt: Date.now(),
+          pausedAt: null,
+          status: 'RUNNING'
+        } : {
+          duration: defaultDur,
+          startedAt: null,
+          pausedAt: null,
+          status: 'IDLE'
+        };
+
+        if (isGameRunning) {
+          startServerTimerMonitoring(io, defaultDur);
+        }
+
+        const updatedState = {
+          gameStatus: isGameRunning ? 'RUNNING' : state.gameStatus,
+          stageView: 'question',
+          currentRound: roundNum,
+          currentQuestionIndex: targetIdx,
+          answerRevealed: false,
+          revealedCluesCount: nextRevealedCount,
+          landingVisible: false,
+          leaderboardVisible: false,
+          qualifiersVisible: false,
+          podiumVisible: false,
+          timer: updatedTimer
+        };
+
+        await storage.updateGameState(updatedState);
+        io.emit('questionChanged', {
+          questionIndex: targetIdx,
+          round: roundNum,
+          question: selectedQ,
+          totalQuestions: questions.length,
+          autoStarted: isGameRunning,
+          duration: defaultDur
+        });
+        io.emit('triggerAudioEffect', { sound: isGameRunning ? 'timer-start' : 'question-change' });
+        if (isGameRunning) {
+          io.emit('timerStarted', { duration: defaultDur, status: 'RUNNING' });
+        }
+
+        const syncData = await getFullSyncPayload();
+        io.emit('gameStateSync', syncData);
+      } catch (err) {
+        console.error('game:select-question error:', err);
       }
     });
 
