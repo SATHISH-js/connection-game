@@ -33,9 +33,9 @@ export const GameProvider = ({ children, role = 'viewer' }) => {
     const baseDefault = {
       eventName: 'CONNECTION GAME',
       eventSubtitle: 'Think. Connect. Win.',
-      collegeName: 'K.S.R. COLLEGE OF ENGINEERING (AUTONOMOUS)',
+      collegeName: 'ANNAPOORANA ENGINEERING COLLEGE (AUTONOMOUS)',
       departmentName: 'DEPARTMENT OF COMPUTER SCIENCE AND ENGINEERING',
-      organisedBy: 'ASSOCIATION OF COMPUTER SCIENCE & ENGINEERING — TECHFEST 2026',
+      organisedBy: 'CODEX — AURA 2026',
       gameRules: [
         'Each round presents visual & multimedia clues linked to a hidden connecting entity.',
         'Round 1: Normal Connection (10 Points per question). All 20+ teams compete.',
@@ -61,7 +61,7 @@ export const GameProvider = ({ children, role = 'viewer' }) => {
         const parsed = JSON.parse(saved);
         return { ...baseDefault, ...parsed };
       }
-    } catch (e) {}
+    } catch (e) { }
     return baseDefault;
   });
 
@@ -122,7 +122,7 @@ export const GameProvider = ({ children, role = 'viewer' }) => {
             const merged = { ...prev, ...resData.data };
             try {
               localStorage.setItem('connection_game_settings', JSON.stringify(merged));
-            } catch (e) {}
+            } catch (e) { }
             return merged;
           });
         }
@@ -180,7 +180,7 @@ export const GameProvider = ({ children, role = 'viewer' }) => {
         : (isDevPort && !isLocalhost)
           ? `${window.location.protocol}//${window.location.hostname}:5000`
           : window.location.origin;
-    
+
     const newSocket = io(socketHost, {
       query: { role },
       transports: ['websocket', 'polling'],
@@ -218,7 +218,7 @@ export const GameProvider = ({ children, role = 'viewer' }) => {
           const merged = { ...prev, ...data.settings };
           try {
             localStorage.setItem('connection_game_settings', JSON.stringify(merged));
-          } catch (e) {}
+          } catch (e) { }
           return merged;
         });
         audioEngine.setVolume(data.settings.masterVolume);
@@ -308,7 +308,7 @@ export const GameProvider = ({ children, role = 'viewer' }) => {
           utterance.rate = 1.0;
           utterance.pitch = 1.05;
           window.speechSynthesis.speak(utterance);
-        } catch (e) {}
+        } catch (e) { }
       }
     });
 
@@ -511,7 +511,7 @@ export const GameProvider = ({ children, role = 'viewer' }) => {
       const merged = { ...prev, ...landingData };
       try {
         localStorage.setItem('connection_game_settings', JSON.stringify(merged));
-      } catch (e) {}
+      } catch (e) { }
       return merged;
     });
 

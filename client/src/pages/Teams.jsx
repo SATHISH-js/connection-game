@@ -1,18 +1,34 @@
-import React, { useState, useEffect } from 'react';
-import { Users, Plus, Trash2, Edit2, RotateCcw, Award, Search, Check, X } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Users, Plus, Trash2, Edit2, RotateCcw, Award, Search, Check, X, Download, Upload } from 'lucide-react';
 import HostLayout from '../components/HostLayout';
 import AvatarSelector from '../components/AvatarSelector';
 import { useGame } from '../context/GameContext';
 
 export default function Teams() {
-  const [teams, setTeams] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { updateTeamScore, showToast, gameState, teams: contextTeams } = useGame();
+  const [teams, setTeams] = useState(contextTeams || []);
+  const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [editingTeam, setEditingTeam] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { updateTeamScore, showToast } = useGame();
+  const [selectedRound, setSelectedRound] = useState(Number(gameState.currentRound) || 1);
+  const fileInputRef = useRef(null);
 
-  const pin = localStorage.getItem('host_auth_pin') || '1234';
+  const pin = localStorage.getItem('host_auth_pin') || sessionStorage.getItem('host_auth_pin') || '1234';
+
+  // Sync selectedRound with gameState.currentRound
+  useEffect(() => {
+    if (gameState.currentRound) {
+      setSelectedRound(Number(gameState.currentRound));
+    }
+  }, [gameState.currentRound]);
+
+  // Real-time synchronization from GameContext teams
+  useEffect(() => {
+    if (contextTeams && contextTeams.length > 0) {
+      setTeams(contextTeams);
+    }
+  }, [contextTeams]);
 
   const fetchTeams = async () => {
     try {
@@ -95,6 +111,50 @@ export default function Teams() {
     }
   };
 
+  const handleExportTeams = () => {
+    const blob = new Blob([JSON.stringify(teams, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `connection-teams-${new Date().toISOString().slice(0, 10)}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+    showToast('Teams roster exported successfully!', 'success');
+  };
+
+  const handleImportTeams = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      try {
+        const parsed = JSON.parse(evt.target?.result);
+        if (!Array.isArray(parsed)) {
+          showToast('Invalid JSON: expected array of teams', 'danger');
+          return;
+        }
+        let imported = 0;
+        for (const t of parsed) {
+          if (t.teamName) {
+            await fetch('/api/teams', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'x-host-pin': pin },
+              body: JSON.stringify(t)
+            });
+            imported++;
+          }
+        }
+        showToast(`Successfully imported ${imported} teams!`, 'success');
+        fetchTeams();
+      } catch (err) {
+        showToast('Error parsing team JSON file', 'danger');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
   const filteredTeams = teams.filter(t =>
     t.teamName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     t.characterName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -117,10 +177,38 @@ export default function Teams() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleImportTeams}
+              accept=".json"
+              className="hidden"
+            />
+
+            <button
+              type="button"
+              onClick={handleExportTeams}
+              title="Download backup file of team roster"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold border border-slate-700 transition-colors"
+            >
+              <Download className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Export Teams</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              title="Upload JSON roster file to add/import teams"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold border border-slate-700 transition-colors"
+            >
+              <Upload className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Import Teams</span>
+            </button>
+
             <button
               onClick={handleResetScores}
-              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-rose-950/40 hover:bg-rose-900/50 text-rose-300 text-xs font-bold border border-rose-800/50 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-rose-950/40 hover:bg-rose-900/50 text-rose-300 text-xs font-bold border border-rose-800/50 transition-colors"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>RESET ALL SCORES</span>
@@ -137,18 +225,43 @@ export default function Teams() {
                 });
                 setIsModalOpen(true);
               }}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 text-white font-black text-sm tracking-wider shadow-lg shadow-purple-600/20 transition-all hover:scale-105"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 text-white font-black text-xs tracking-wider shadow-lg shadow-purple-600/20 transition-all hover:scale-105"
             >
               <Plus className="w-4 h-4" />
-              <span>REGISTER NEW TEAM</span>
+              <span>REGISTER TEAM</span>
             </button>
           </div>
         </div>
 
-        {/* Search bar & team count */}
+        {/* Search bar, total count & Round Scoring selector */}
         <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-slate-900/40 border border-slate-800">
-          <div className="text-xs font-black text-slate-400 tracking-wider uppercase">
-            TOTAL REGISTERED: <span className="text-purple-400 font-mono text-sm">{teams.length} TEAMS</span>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="text-xs font-black text-slate-400 tracking-wider uppercase">
+              TOTAL REGISTERED: <span className="text-purple-400 font-mono text-sm">{teams.length} TEAMS</span>
+            </div>
+
+            {/* Active Round Selector for Score Buttons */}
+            <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
+              <span className="text-[10px] font-black text-slate-400 uppercase px-2">SCORING ROUND:</span>
+              {[
+                { round: 1, label: 'Round 1' },
+                { round: 2, label: 'Round 2' },
+                { round: 3, label: 'Tie Breaker' }
+              ].map(r => (
+                <button
+                  key={r.round}
+                  type="button"
+                  onClick={() => setSelectedRound(r.round)}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                    selectedRound === r.round
+                      ? 'bg-purple-600 text-white shadow-md'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  {r.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="relative w-full sm:w-72">
@@ -228,40 +341,48 @@ export default function Teams() {
                 <div className="pt-4 mt-4 border-t border-slate-800/80">
                   <div className="flex items-center justify-between gap-1 mb-2">
                     <button
+                      type="button"
                       onClick={async () => {
-                        await updateTeamScore(team.teamId, { delta: 10, round: 1 });
+                        await updateTeamScore(team.teamId, { delta: 10, round: selectedRound });
                         fetchTeams();
                       }}
                       className="px-2 py-1 rounded bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 text-[11px] font-bold border border-emerald-500/30"
+                      title={`Add 10 points to Round ${selectedRound === 3 ? 'Tie Breaker' : selectedRound}`}
                     >
-                      +10
+                      +10 (R{selectedRound === 3 ? 'T' : selectedRound})
                     </button>
                     <button
+                      type="button"
                       onClick={async () => {
-                        await updateTeamScore(team.teamId, { delta: 5, round: 1 });
+                        await updateTeamScore(team.teamId, { delta: 5, round: selectedRound });
                         fetchTeams();
                       }}
                       className="px-2 py-1 rounded bg-emerald-600/15 hover:bg-emerald-600/30 text-emerald-300 text-[11px] font-bold border border-emerald-500/20"
+                      title={`Add 5 points to Round ${selectedRound === 3 ? 'Tie Breaker' : selectedRound}`}
                     >
                       +5
                     </button>
                     <button
+                      type="button"
                       onClick={async () => {
-                        await updateTeamScore(team.teamId, { delta: -5, round: 1 });
+                        await updateTeamScore(team.teamId, { delta: -5, round: selectedRound });
                         fetchTeams();
                       }}
                       className="px-2 py-1 rounded bg-rose-600/15 hover:bg-rose-600/30 text-rose-300 text-[11px] font-bold border border-rose-500/20"
+                      title={`Deduct 5 points from Round ${selectedRound === 3 ? 'Tie Breaker' : selectedRound}`}
                     >
                       -5
                     </button>
                     <button
+                      type="button"
                       onClick={async () => {
-                        await updateTeamScore(team.teamId, { directScore: 0, round: 1 });
+                        await updateTeamScore(team.teamId, { directScore: 0, round: selectedRound });
                         fetchTeams();
                       }}
                       className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-400 text-[11px] font-bold"
+                      title={`Reset Round ${selectedRound === 3 ? 'Tie Breaker' : selectedRound} score to 0`}
                     >
-                      Clr
+                      Clr R{selectedRound === 3 ? 'T' : selectedRound}
                     </button>
                   </div>
 

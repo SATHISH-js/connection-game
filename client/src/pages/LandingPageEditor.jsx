@@ -40,22 +40,23 @@ export default function LandingPageEditor() {
     settings.gameRules && settings.gameRules.length > 0
       ? settings.gameRules
       : [
-          'Each round presents visual & multimedia clues linked to a hidden connecting entity.',
-          'Round 1: Normal Connection (10 Points per question). All 20+ teams compete.',
-          'Top qualifying teams advance to Round 2 based on Round 1 score rankings.',
-          'Round 2: Sequential Clue Unlocking — clues unlock step-by-step with points for early answers.',
-          'Round 3: High-Stakes Tie Breaker to determine the podium champions.',
-          'Electronic devices strictly prohibited during buzzer rounds. Quiz Master decisions are final.'
-        ]
+        'Each round presents visual & multimedia clues linked to a hidden connecting entity.',
+        'Round 1: Normal Connection (10 Points per question). All 20+ teams compete.',
+        'Top qualifying teams advance to Round 2 based on Round 1 score rankings.',
+        'Round 2: Sequential Clue Unlocking — clues unlock step-by-step with points for early answers.',
+        'Round 3: High-Stakes Tie Breaker to determine the podium champions.',
+        'Electronic devices strictly prohibited during buzzer rounds. Quiz Master decisions are final.'
+      ]
   );
   const [countdownMinutes, setCountdownMinutes] = useState(settings.landingCountdownMinutes || 15);
   const [newRuleText, setNewRuleText] = useState('');
   const [isDirty, setIsDirty] = useState(false);
   const fileInputRef = useRef(null);
+  const initializedRef = useRef(false);
 
-  // Keep local state in sync when settings update from server ONLY IF the user is not actively editing
+  // Initialize local form state ONCE from settings when available, never overwrite while typing or saving
   useEffect(() => {
-    if (!isDirty) {
+    if (!initializedRef.current && settings) {
       if (settings.collegeName !== undefined) setCollegeName(settings.collegeName || '');
       if (settings.departmentName !== undefined) setDepartmentName(settings.departmentName || '');
       if (settings.organisedBy !== undefined) setOrganisedBy(settings.organisedBy || '');
@@ -67,11 +68,17 @@ export default function LandingPageEditor() {
       if (settings.landingCountdownMinutes !== undefined) {
         setCountdownMinutes(settings.landingCountdownMinutes || 15);
       }
+      if (settings.collegeName || settings.eventName) {
+        initializedRef.current = true;
+      }
     }
-  }, [settings, isDirty]);
+  }, [settings]);
 
-  const handleSaveSettings = () => {
-    updateLandingSettings({
+  const handleSaveSettings = async () => {
+    // Keep initializedRef true so incoming socket/API gameStateSync never reverts the saved form values
+    initializedRef.current = true;
+    setIsDirty(false);
+    await updateLandingSettings({
       collegeName,
       departmentName,
       organisedBy,
@@ -80,7 +87,6 @@ export default function LandingPageEditor() {
       gameRules: rules,
       landingCountdownMinutes: Number(countdownMinutes)
     });
-    setIsDirty(false);
   };
 
   // Export JSON backup of landing page configuration
@@ -235,11 +241,10 @@ export default function LandingPageEditor() {
             <button
               type="button"
               onClick={() => setStageView(isLandingActive ? 'question' : 'landing')}
-              className={`px-4 py-2 rounded-xl text-xs font-black tracking-wider border transition-all flex items-center gap-2 ${
-                isLandingActive
+              className={`px-4 py-2 rounded-xl text-xs font-black tracking-wider border transition-all flex items-center gap-2 ${isLandingActive
                   ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-lg shadow-amber-500/30'
                   : 'bg-emerald-600 hover:bg-emerald-500 text-slate-950 border-emerald-400 shadow-lg shadow-emerald-600/20'
-              }`}
+                }`}
             >
               <Eye className="w-4 h-4 fill-current" />
               <span>{isLandingActive ? 'EXIT LANDING SCREEN' : 'SHOW LANDING ON DISPLAY'}</span>
@@ -268,7 +273,7 @@ export default function LandingPageEditor() {
                   type="text"
                   value={collegeName}
                   onChange={(e) => { setCollegeName(e.target.value); setIsDirty(true); }}
-                  placeholder="e.g. K.S.R. COLLEGE OF ENGINEERING (AUTONOMOUS)"
+                  placeholder="e.g. ANNAPOORANA ENGINEERING COLLEGE (AUTONOMOUS)"
                   className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm font-bold text-slate-100 placeholder-slate-600 focus:outline-none focus:border-amber-500"
                 />
               </div>
@@ -359,11 +364,10 @@ export default function LandingPageEditor() {
                       setCountdownMinutes(mins);
                       handleStartCountdown(mins);
                     }}
-                    className={`px-3.5 py-2 rounded-xl text-xs font-mono font-bold border transition-all ${
-                      Number(countdownMinutes) === mins && settings.landingCountdownActive
+                    className={`px-3.5 py-2 rounded-xl text-xs font-mono font-bold border transition-all ${Number(countdownMinutes) === mins && settings.landingCountdownActive
                         ? 'bg-cyan-500/30 border-cyan-400 text-cyan-200 shadow-md'
                         : 'bg-slate-800/70 border-slate-700 text-slate-300 hover:bg-slate-800'
-                    }`}
+                      }`}
                   >
                     {mins} MINS
                   </button>

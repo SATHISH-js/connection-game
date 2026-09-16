@@ -569,7 +569,7 @@ const seedQuestions = [
 ];
 
 const seedSettings = {
-  eventName: 'SYMPOSIUM 2026 CONNECTION ARENA',
+  eventName: 'CONNECTION GAME',
   eventSubtitle: 'Think. Connect. Win.',
   collegeName: 'K.S.R. COLLEGE OF ENGINEERING (AUTONOMOUS)',
   departmentName: 'DEPARTMENT OF COMPUTER SCIENCE AND ENGINEERING',

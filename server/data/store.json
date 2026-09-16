@@ -819,11 +819,11 @@
     }
   ],
   "settings": {
-    "eventName": "SYMPOSIUM 2026 CONNECTION ARENA",
+    "eventName": "CONNECTION GAME",
     "eventSubtitle": "Think. Connect. Win.",
-    "collegeName": "K.S.R. COLLEGE OF ENGINEERING (AUTONOMOUS)",
+    "collegeName": "ANNAPOORANA ENGINEERING COLLEGE (AUTONOMOUS)",
     "departmentName": "DEPARTMENT OF COMPUTER SCIENCE AND ENGINEERING",
-    "organisedBy": "ASSOCIATION OF COMPUTER SCIENCE & ENGINEERING — TECHFEST 2026",
+    "organisedBy": "CODEX — AURA 2026",
     "gameRules": [
       "Each round presents visual & multimedia clues linked to a hidden connecting entity.",
       "Round 1: Normal Connection (10 Points per question). All 20+ teams compete.",
@@ -866,7 +866,7 @@
     "celebrationAudioUrl": "",
     "displayFullscreen": false,
     "theme": "dark",
-    "updatedAt": "2026-09-16T07:19:21.228Z"
+    "updatedAt": "2026-09-16T09:41:52.028Z"
   },
   "gameState": {
     "currentRound": 1,

@@ -149,40 +149,11 @@ function saveJsonStore() {
 }
 
 async function initStorage() {
-  const mongoUri = process.env.MONGODB_URI;
-
-  // If MONGODB_URI is not explicitly configured, DISCONNECT MongoDB and immediately use Render JSON storage
-  if (!mongoUri || !mongoUri.trim()) {
-    isMongoConnected = false;
-    console.log('⚡ Render Local JSON Database active (store.json). MongoDB is disconnected.');
-    initJsonStore();
-    return;
-  }
-
-  try {
-    // Only attempt MongoDB connection when MONGODB_URI is provided
-    await mongoose.connect(mongoUri.trim(), {
-      serverSelectionTimeoutMS: 5000
-    });
-    isMongoConnected = true;
-    const safeLogUri = mongoUri.replace(/\/\/([^:]+):([^@]+)@/, '//***:***@');
-    console.log('✅ Connected to MongoDB at', safeLogUri);
-
-    // Seed MongoDB if empty
-    const teamCount = await Team.countDocuments();
-    if (teamCount === 0) {
-      console.log('🌱 Seeding MongoDB with initial demo data...');
-      await Team.insertMany(seedTeams);
-      await Question.insertMany(seedQuestions);
-      await GameSetting.create(seedSettings);
-      await GameState.create(initialGameState);
-      console.log('🌱 MongoDB seeding completed successfully.');
-    }
-  } catch (err) {
-    isMongoConnected = false;
-    console.log('ℹ️ MongoDB connection failed (' + err.message + '). Switching to Render local JSON storage.');
-    initJsonStore();
-  }
+  // MongoDB permanently disconnected per user instruction.
+  // Using Render's high-speed persistent Local JSON storage (store.json + store.backup.json).
+  isMongoConnected = false;
+  console.log('⚡ Render Local JSON Database active (store.json). MongoDB is permanently disconnected.');
+  initJsonStore();
 }
 
 function buildIdQuery(id) {
@@ -199,29 +170,21 @@ function matchMemoryItem(item, id) {
 }
 
 const storage = {
-  isMongo: () => isMongoConnected,
+  isMongo: () => false,
 
   getDbStatus() {
-    const mongoUri = process.env.MONGODB_URI || '';
-    const isConfigured = Boolean(mongoUri && mongoUri.trim() !== '');
-    const isAtlas = mongoUri.includes('mongodb.net');
     return {
-      connected: isMongoConnected,
-      mode: isMongoConnected ? 'mongodb' : 'local_json',
-      databaseType: isMongoConnected ? (isAtlas ? 'MongoDB Atlas (Cloud)' : 'MongoDB (Local)') : 'Render Local JSON Persistence (store.json)',
+      connected: false,
+      mode: 'local_json',
+      databaseType: 'Render Local JSON Persistence (store.json)',
       isPersistentOnRender: true,
-      mongoUriConfigured: isConfigured,
-      message: isMongoConnected
-        ? 'Connected to permanent MongoDB Atlas cloud database.'
-        : 'Running on Render Local JSON database (store.json) with redundant backup protection (store.backup.json). Questions and teams are tracked and persisted.'
+      mongoUriConfigured: false,
+      message: 'MongoDB is disconnected. Running on Render Local JSON database (store.json) with redundant backup protection (store.backup.json). All data is permanently preserved.'
     };
   },
 
   // Teams
   async getTeams() {
-    if (isMongoConnected) {
-      return await Team.find().sort({ totalScore: -1, teamNumber: 1 }).lean();
-    }
     if (!memoryStore.teams || memoryStore.teams.length === 0) {
       memoryStore.teams = JSON.parse(JSON.stringify(seedTeams));
       saveJsonStore();
@@ -230,26 +193,21 @@ const storage = {
   },
 
   async getTeam(teamId) {
-    if (isMongoConnected) {
-      return await Team.findOne({ teamId }).lean();
-    }
-    return memoryStore.teams.find(t => t.teamId === teamId) || null;
+    if (!teamId) return null;
+    const strId = String(teamId);
+    return memoryStore.teams.find(t => t.teamId === strId || t.id === strId || (t._id && String(t._id) === strId)) || null;
   },
 
   async createTeam(teamData) {
-    if (isMongoConnected) {
-      return await Team.create(teamData);
-    }
     memoryStore.teams.push(teamData);
     saveJsonStore();
     return teamData;
   },
 
   async updateTeam(teamId, updates) {
-    if (isMongoConnected) {
-      return await Team.findOneAndUpdate({ teamId }, { $set: updates }, { new: true }).lean();
-    }
-    const idx = memoryStore.teams.findIndex(t => t.teamId === teamId);
+    if (!teamId) return null;
+    const strId = String(teamId);
+    const idx = memoryStore.teams.findIndex(t => t.teamId === strId || t.id === strId || (t._id && String(t._id) === strId));
     if (idx !== -1) {
       memoryStore.teams[idx] = { ...memoryStore.teams[idx], ...updates };
       saveJsonStore();
@@ -259,10 +217,9 @@ const storage = {
   },
 
   async deleteTeam(teamId) {
-    if (isMongoConnected) {
-      return await Team.findOneAndDelete({ teamId });
-    }
-    const idx = memoryStore.teams.findIndex(t => t.teamId === teamId);
+    if (!teamId) return null;
+    const strId = String(teamId);
+    const idx = memoryStore.teams.findIndex(t => t.teamId === strId || t.id === strId || (t._id && String(t._id) === strId));
     if (idx !== -1) {
       const removed = memoryStore.teams.splice(idx, 1)[0];
       saveJsonStore();

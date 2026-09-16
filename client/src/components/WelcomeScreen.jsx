@@ -41,13 +41,13 @@ export default function WelcomeScreen() {
   const rules = settings.gameRules && settings.gameRules.length > 0
     ? settings.gameRules
     : [
-        'Each round presents visual & multimedia clues linked to a hidden connecting entity.',
-        'Round 1: Normal Connection (10 Points per question). All 20+ teams compete.',
-        'Top qualifying teams advance to Round 2 based on Round 1 score rankings.',
-        'Round 2: Sequential Clue Unlocking — clues unlock step-by-step with points for early answers.',
-        'Round 3: High-Stakes Tie Breaker to determine the podium champions.',
-        'Electronic devices strictly prohibited during buzzer rounds. Quiz Master decisions are final.'
-      ];
+      'Each round presents visual & multimedia clues linked to a hidden connecting entity.',
+      'Round 1: Normal Connection (10 Points per question). All 20+ teams compete.',
+      'Top qualifying teams advance to Round 2 based on Round 1 score rankings.',
+      'Round 2: Sequential Clue Unlocking — clues unlock step-by-step with points for early answers.',
+      'Round 3: High-Stakes Tie Breaker to determine the podium champions.',
+      'Electronic devices strictly prohibited during buzzer rounds. Quiz Master decisions are final.'
+    ];
 
   return (
     <div className="w-full h-full flex flex-col justify-between items-center text-center px-3 sm:px-6 md:px-10 py-3 sm:py-4 select-none animate-in fade-in duration-700 min-h-0">
@@ -57,7 +57,7 @@ export default function WelcomeScreen() {
         <div className="flex items-center justify-center gap-1.5 sm:gap-2">
           <GraduationCap className="w-5 h-5 sm:w-6 h-6 text-amber-400 shrink-0" />
           <h1 className="text-base sm:text-xl md:text-2xl lg:text-3xl font-black text-amber-400 tracking-wider uppercase drop-shadow-md">
-            {settings.collegeName || 'K.S.R. COLLEGE OF ENGINEERING (AUTONOMOUS)'}
+            {settings.collegeName || 'ANNAPOORANA ENGINEERING COLLEGE (AUTONOMOUS)'}
           </h1>
         </div>
 
@@ -69,7 +69,7 @@ export default function WelcomeScreen() {
         {/* Organised By */}
         <div className="inline-flex items-center gap-1.5 px-3 py-0.5 sm:px-4 sm:py-1 rounded-full bg-slate-900/90 border border-slate-700/80 text-[11px] sm:text-xs font-bold text-cyan-300 shadow-md">
           <Users className="w-3 h-3 sm:w-3.5 h-3.5 text-cyan-400 shrink-0" />
-          <span>{settings.organisedBy || 'ASSOCIATION OF COMPUTER SCIENCE & ENGINEERING — TECHFEST 2026'}</span>
+          <span>{settings.organisedBy || 'CODEX — AURA 2026'}</span>
         </div>
 
         {/* Golden Divider */}
@@ -80,11 +80,10 @@ export default function WelcomeScreen() {
       <div className="my-auto py-1 sm:py-2 flex flex-col items-center shrink-0">
         <div className="relative inline-block mb-1 sm:mb-2">
           <div className="absolute -inset-3 bg-gradient-to-r from-amber-500/20 via-yellow-500/30 to-amber-500/20 blur-xl rounded-3xl pointer-events-none" />
-          <h2 className={`relative font-black tracking-tight text-slate-100 uppercase drop-shadow-2xl transition-all ${
-            settings.landingCountdownActive && secondsRemaining > 0
+          <h2 className={`relative font-black tracking-tight text-slate-100 uppercase drop-shadow-2xl transition-all ${settings.landingCountdownActive && secondsRemaining > 0
               ? 'text-3xl sm:text-5xl md:text-6xl lg:text-7xl'
               : 'text-4xl sm:text-6xl md:text-7xl lg:text-8xl'
-          }`}>
+            }`}>
             {settings.eventName || 'CONNECTION GAME'}
           </h2>
         </div>
