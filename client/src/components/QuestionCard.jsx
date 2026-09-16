@@ -16,29 +16,37 @@ import { resolveMediaUrl } from '../utils/media';
 
 function ClueImageRenderer({ src, alt }) {
   const [hasError, setHasError] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const [retryKey, setRetryKey] = useState(0);
   const resolvedUrl = resolveMediaUrl(src);
 
-  if (hasError) {
+  if (hasError || !resolvedUrl) {
     return (
-      <div className="relative w-full h-full flex flex-col items-center justify-center p-3 text-center bg-slate-950/90 z-10 select-none">
-        <ImageIcon className="w-8 h-8 text-amber-500/50 mb-1.5 animate-pulse" />
-        <span className="text-[11px] font-bold text-slate-300">Image Preview Unavailable</span>
-        <span className="text-[9px] text-slate-500 font-mono mt-0.5 line-clamp-1 max-w-[180px]">
-          {src}
+      <div className="relative w-full h-full flex flex-col items-center justify-center p-4 text-center bg-gradient-to-b from-slate-900 via-slate-950 to-amber-950/20 z-10 select-none border border-slate-800 rounded-xl">
+        <div className="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/40 flex items-center justify-center mb-2 shadow-lg shadow-amber-500/10">
+          <ImageIcon className="w-6 h-6 text-amber-400" />
+        </div>
+        <span className="text-xs font-black text-slate-200 uppercase tracking-wider">
+          CLUE IMAGE UNAVAILABLE
         </span>
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            setHasError(false);
-            setRetryKey(k => k + 1);
-          }}
-          className="mt-2 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 text-[10px] font-bold flex items-center gap-1 border border-slate-700 transition-colors"
-        >
-          <RotateCcw className="w-3 h-3" />
-          <span>Retry Loading</span>
-        </button>
+        <span className="text-[10px] text-amber-400/80 font-mono mt-1 line-clamp-1 max-w-[220px] px-2 py-0.5 rounded bg-slate-900/90 border border-slate-800">
+          {alt || (src ? String(src).split('/').pop() : 'Missing image source')}
+        </span>
+        {src && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setHasError(false);
+              setLoaded(false);
+              setRetryKey(k => k + 1);
+            }}
+            className="mt-2.5 px-3 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 text-[11px] font-bold flex items-center gap-1.5 border border-slate-700 hover:border-cyan-400/50 transition-all shadow-sm"
+          >
+            <RotateCcw className="w-3 h-3" />
+            <span>Retry Loading</span>
+          </button>
+        )}
       </div>
     );
   }
@@ -47,51 +55,155 @@ function ClueImageRenderer({ src, alt }) {
 
   return (
     <div className="relative w-full h-full flex items-center justify-center overflow-hidden bg-slate-950">
+      {/* Visual Loading Skeleton until image bytes finish arriving */}
+      {!loaded && !hasError && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/90 z-20 select-none animate-pulse">
+          <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mb-1.5">
+            <ImageIcon className="w-5 h-5 text-amber-400 animate-bounce" />
+          </div>
+          <span className="text-[11px] font-black tracking-wider text-slate-300">LOADING CLUE...</span>
+        </div>
+      )}
+
+      {/* Ambient background blur for cinematic presentation */}
       <img
         src={finalSrc}
         alt=""
         aria-hidden="true"
-        className="absolute inset-0 w-full h-full object-cover blur-xl opacity-30 scale-125 pointer-events-none"
+        className="absolute inset-0 w-full h-full object-cover blur-xl opacity-25 scale-125 pointer-events-none"
       />
+
+      {/* Primary crisp foreground image with smooth fade-in */}
       <img
         key={finalSrc}
         src={finalSrc}
         alt={alt}
-        className="relative max-w-full max-h-full w-auto h-auto object-contain object-center drop-shadow-2xl group-hover:scale-[1.02] transition-transform duration-500 z-10"
-        onError={() => setHasError(true)}
+        onLoad={() => setLoaded(true)}
+        onError={() => {
+          setHasError(true);
+          setLoaded(false);
+        }}
+        className={`relative max-w-full max-h-full w-auto h-auto object-contain object-center drop-shadow-2xl group-hover:scale-[1.02] transition-all duration-500 z-10 ${
+          loaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+        }`}
       />
     </div>
   );
 }
 
+function ClueVideoRenderer({ src, alt }) {
+  const [hasError, setHasError] = useState(false);
+  const [retryKey, setRetryKey] = useState(0);
+  const resolvedUrl = resolveMediaUrl(src);
+
+  if (hasError || !resolvedUrl) {
+    return (
+      <div className="relative w-full h-full flex flex-col items-center justify-center p-4 text-center bg-gradient-to-b from-slate-900 via-slate-950 to-cyan-950/20 z-10 select-none border border-slate-800 rounded-xl">
+        <div className="w-12 h-12 rounded-2xl bg-cyan-500/15 border border-cyan-500/40 flex items-center justify-center mb-2 shadow-lg shadow-cyan-500/10">
+          <VideoIcon className="w-6 h-6 text-cyan-400" />
+        </div>
+        <span className="text-xs font-black text-slate-200 uppercase tracking-wider">
+          VIDEO STREAM UNAVAILABLE
+        </span>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setHasError(false);
+            setRetryKey(k => k + 1);
+          }}
+          className="mt-2.5 px-3 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 text-[11px] font-bold flex items-center gap-1.5 border border-slate-700 transition-all"
+        >
+          <RotateCcw className="w-3 h-3" />
+          <span>Retry Video</span>
+        </button>
+      </div>
+    );
+  }
+
+  const finalSrc = retryKey > 0 ? `${resolvedUrl}${resolvedUrl.includes('?') ? '&' : '?'}retry=${retryKey}` : resolvedUrl;
+
+  return (
+    <video
+      key={finalSrc}
+      src={finalSrc}
+      autoPlay
+      loop
+      muted
+      playsInline
+      controls
+      className="w-full h-full object-contain object-center bg-black"
+      onError={() => setHasError(true)}
+    />
+  );
+}
+
 /**
- * Parses a clue whether it is:
- * 1. An object: { text, image, video, mediaType, emoji }
- * 2. A video URL string: "https://...mp4"
- * 3. An image URL string: "https://..."
- * 4. An emoji string: "🍎 Red Apple"
- * 5. Plain text: "Gravity"
+ * Robust clue item parser supporting:
+ * 1. Object format with all field aliases: { image, url, src, imageUrl, img, photo, pic, mediaUrl, media }
+ * 2. Auto-detection of video vs image formats
+ * 3. Base64 data URLs: "data:image/..."
+ * 4. Image or Video URL strings
+ * 5. Emoji strings: "🍎 Red Apple"
+ * 6. Plain text strings
  */
 export function parseClueItem(clue) {
   if (!clue) return { text: '', image: '', video: '', mediaType: 'text', emoji: '' };
+
   if (typeof clue === 'object') {
-    const text = clue.text || '';
-    const image = clue.image || '';
-    const video = clue.video || '';
+    const text = String(clue.text || '').trim();
+    const rawImage = String(
+      clue.image ||
+      clue.url ||
+      clue.src ||
+      clue.imageUrl ||
+      clue.img ||
+      clue.photo ||
+      clue.pic ||
+      clue.mediaUrl ||
+      clue.media ||
+      ''
+    ).trim();
+    const rawVideo = String(clue.video || '').trim();
     const emoji = clue.emoji || '';
+
+    let image = rawImage;
+    let video = rawVideo;
+
+    // Intelligent check: did an image URL end up in video field, or vice versa?
+    const isVideoUrl = (val) => /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(val) || val.startsWith('data:video/');
+    const isImageUrl = (val) =>
+      /\.(jpg|jpeg|png|gif|webp|svg|bmp|ico|avif)(\?.*)?$/i.test(val) ||
+      val.startsWith('data:image/') ||
+      val.includes('images.unsplash.com') ||
+      val.includes('googleusercontent.com');
+
+    if (image && isVideoUrl(image) && !video) {
+      video = image;
+      image = '';
+    } else if (video && isImageUrl(video) && !image) {
+      image = video;
+      video = '';
+    }
+
     const mediaType = clue.mediaType || (video ? 'video' : image ? 'image' : emoji ? 'emoji' : 'text');
     return { text, image, video, mediaType, emoji };
   }
 
   const str = String(clue).trim();
-  const isVideoUrl = /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(str);
-  const isImageUrl = /\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i.test(str) || str.includes('images.unsplash.com');
-  const isGenericUrl = str.startsWith('http://') || str.startsWith('https://') || str.startsWith('/uploads/') || str.startsWith('data:');
+  const isVideoExt = /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(str) || str.startsWith('data:video/');
+  const isImageExt =
+    /\.(jpg|jpeg|png|gif|webp|svg|bmp|ico|avif)(\?.*)?$/i.test(str) ||
+    str.startsWith('data:image/') ||
+    str.includes('images.unsplash.com') ||
+    str.includes('googleusercontent.com') ||
+    str.includes('drive.google.com');
+  const isGenericUrl = str.startsWith('http://') || str.startsWith('https://') || str.startsWith('/uploads/') || str.startsWith('\\uploads\\');
 
-  if (isVideoUrl) {
+  if (isVideoExt) {
     return { text: '', image: '', video: str, mediaType: 'video', emoji: '' };
   }
-  if (isImageUrl || isGenericUrl) {
+  if (isImageExt || isGenericUrl) {
     return { text: '', image: str, video: '', mediaType: 'image', emoji: '' };
   }
 
@@ -330,17 +442,9 @@ export default function QuestionCard({
               {/* Clue Multimedia Frame: Maximized, Uncropped, High-Impact Image/Video */}
               <div className="relative flex-1 min-h-0 w-full rounded-2xl bg-slate-950 border border-slate-800/80 overflow-hidden flex items-center justify-center mb-1.5 group-hover:border-amber-500/50 transition-colors">
                 {clue.video ? (
-                  <video
-                    src={resolveMediaUrl(clue.video)}
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    controls
-                    className="w-full h-full object-contain object-center bg-black"
-                    onError={(e) => {
-                      console.warn('Video error for clue:', clue.video);
-                    }}
+                  <ClueVideoRenderer
+                    src={clue.video}
+                    alt={clue.text || `Clue ${idx + 1}`}
                   />
                 ) : clue.image ? (
                   <ClueImageRenderer

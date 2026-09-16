@@ -22,25 +22,108 @@ exports.getQuestionById = async (req, res) => {
   }
 };
 
+const normalizeServerMediaUrl = (rawUrl) => {
+  if (!rawUrl || typeof rawUrl !== 'string') return '';
+  let url = rawUrl.trim();
+
+  // Normalize Windows backslashes
+  if (url.includes('\\uploads\\')) {
+    url = url.replace(/\\+/g, '/');
+  }
+
+  // Google Drive Share Links
+  const gDriveMatch = url.match(/drive\.google\.com\/(?:file\/d\/([a-zA-Z0-9_-]+)|open\?id=([a-zA-Z0-9_-]+)|uc\?(?:[^&]*&)*id=([a-zA-Z0-9_-]+))/i);
+  if (gDriveMatch) {
+    const fileId = gDriveMatch[1] || gDriveMatch[2] || gDriveMatch[3];
+    if (fileId) {
+      return `https://lh3.googleusercontent.com/d/${fileId}`;
+    }
+  }
+
+  // Dropbox Links
+  if (url.includes('dropbox.com/s/')) {
+    if (url.includes('?dl=0')) return url.replace('?dl=0', '?raw=1');
+    if (!url.includes('?raw=1') && !url.includes('&raw=1')) return url.includes('?') ? `${url}&raw=1` : `${url}?raw=1`;
+  }
+
+  // GitHub Blob Links
+  const ghMatch = url.match(/^https?:\/\/github\.com\/([^/]+)\/([^/]+)\/blob\/([^/]+)\/(.+)$/i);
+  if (ghMatch) {
+    return `https://raw.githubusercontent.com/${ghMatch[1]}/${ghMatch[2]}/${ghMatch[3]}/${ghMatch[4]}`;
+  }
+
+  return url;
+};
+
 const sanitizeClue = (c) => {
   if (!c) return null;
   if (typeof c === 'object') {
     const text = c.text ? String(c.text).trim() : '';
-    const image = c.image ? String(c.image).trim() : '';
-    const video = c.video ? String(c.video).trim() : '';
+    const rawImage = String(
+      c.image ||
+      c.url ||
+      c.src ||
+      c.imageUrl ||
+      c.img ||
+      c.photo ||
+      c.pic ||
+      c.mediaUrl ||
+      c.media ||
+      ''
+    ).trim();
+    const rawVideo = c.video ? String(c.video).trim() : '';
     const emoji = c.emoji ? String(c.emoji).trim() : '';
+
+    let image = normalizeServerMediaUrl(rawImage);
+    let video = normalizeServerMediaUrl(rawVideo);
+
+    const isVideoUrl = (val) => /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(val) || val.startsWith('data:video/');
+    const isImageUrl = (val) =>
+      /\.(jpg|jpeg|png|gif|webp|svg|bmp|ico|avif)(\?.*)?$/i.test(val) ||
+      val.startsWith('data:image/') ||
+      val.includes('images.unsplash.com') ||
+      val.includes('googleusercontent.com');
+
+    if (image && isVideoUrl(image) && !video) {
+      video = image;
+      image = '';
+    } else if (video && isImageUrl(video) && !image) {
+      image = video;
+      video = '';
+    }
+
     // A clue is valid if it has at least one of text, image, video, or emoji
     if (!text && !image && !video && !emoji) return null;
     return {
       text,
       image,
       video,
-      mediaType: c.mediaType || (video ? 'video' : image ? 'image' : 'text'),
+      mediaType: c.mediaType || (video ? 'video' : image ? 'image' : emoji ? 'emoji' : 'text'),
       emoji
     };
   }
+
   const str = String(c).trim();
-  return str.length > 0 ? { text: str, image: '', video: '', mediaType: 'text' } : null;
+  const isVideoExt = /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(str) || str.startsWith('data:video/');
+  const isImageExt =
+    /\.(jpg|jpeg|png|gif|webp|svg|bmp|ico|avif)(\?.*)?$/i.test(str) ||
+    str.startsWith('data:image/') ||
+    str.includes('images.unsplash.com') ||
+    str.includes('googleusercontent.com') ||
+    str.includes('drive.google.com') ||
+    str.startsWith('/uploads/') ||
+    str.startsWith('\\uploads\\') ||
+    str.startsWith('http://') ||
+    str.startsWith('https://');
+
+  if (isVideoExt) {
+    return { text: '', image: '', video: normalizeServerMediaUrl(str), mediaType: 'video', emoji: '' };
+  }
+  if (isImageExt) {
+    return { text: '', image: normalizeServerMediaUrl(str), video: '', mediaType: 'image', emoji: '' };
+  }
+
+  return str.length > 0 ? { text: str, image: '', video: '', mediaType: 'text', emoji: '' } : null;
 };
 
 exports.createQuestion = async (req, res) => {

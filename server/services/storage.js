@@ -58,6 +58,26 @@ function ensureDataIntegrity() {
             q.questionNumber = idx + 1;
             modified = true;
           }
+
+          // Self-heal any wiped /uploads image references
+          if (Array.isArray(q.clues)) {
+            q.clues.forEach((c, cIdx) => {
+              if (c.image && c.image.startsWith('/uploads/')) {
+                const relPath = c.image.replace(/^\//, '');
+                const diskFile = path.join(__dirname, '..', relPath);
+                if (!fs.existsSync(diskFile)) {
+                  const seedMatch = seedQuestions.find(sq => sq.id === q.id || sq.title === q.title);
+                  if (seedMatch && seedMatch.clues && seedMatch.clues[cIdx]) {
+                    c.image = seedMatch.clues[cIdx].image;
+                    if (!c.text || c.text === 'ㅤ' || c.text.trim() === '') {
+                      c.text = seedMatch.clues[cIdx].text;
+                    }
+                    modified = true;
+                  }
+                }
+              }
+            });
+          }
         });
       }
     });

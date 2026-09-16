@@ -28,6 +28,129 @@ import HostLayout from '../components/HostLayout';
 import { useGame } from '../context/GameContext';
 import { audioEngine } from '../services/audioEngine';
 import { parseClueItem } from '../components/QuestionCard';
+import { resolveMediaUrl, normalizeMediaUrl } from '../utils/media';
+
+/**
+ * Client-side Canvas Image Compression
+ * Shrinks heavy mobile / camera photos (5-10MB) to ~100-150KB JPEG Data URLs.
+ * Stores permanently inside JSON database so Render restarts never lose uploaded media.
+ */
+async function compressImageFile(file, maxWidth = 1280, maxHeight = 1280, quality = 0.82) {
+  if (!file) return null;
+  if (!file.type.startsWith('image/')) {
+    throw new Error('Selected file is not an image');
+  }
+
+  // Preserve vector SVGs as-is
+  if (file.type === 'image/svg+xml') {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > maxWidth || height > maxHeight) {
+          const ratio = Math.min(maxWidth / width, maxHeight / height);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+        resolve(dataUrl);
+      };
+      img.onerror = () => reject(new Error('Failed to load image for compression'));
+      img.src = event.target.result;
+    };
+    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.readAsDataURL(file);
+  });
+}
+
+/**
+ * Reusable Clue Thumbnail with Loading & Error States
+ * Never leaves a blank black box even if an image fails or 404s.
+ */
+function ClueThumbnail({ clue, idx = 0, className = 'w-full h-full' }) {
+  const [hasError, setHasError] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const resolvedUrl = resolveMediaUrl(clue?.image);
+
+  if (clue?.video) {
+    return (
+      <video
+        src={resolveMediaUrl(clue.video)}
+        autoPlay
+        loop
+        muted
+        playsInline
+        className={`${className} object-cover bg-black`}
+        onError={() => console.warn('Video load error', clue.video)}
+      />
+    );
+  }
+
+  if (clue?.emoji) {
+    return (
+      <span className="text-4xl sm:text-5xl drop-shadow-md group-hover:scale-110 transition-transform">
+        {clue.emoji}
+      </span>
+    );
+  }
+
+  if (clue?.image) {
+    if (hasError || !resolvedUrl) {
+      return (
+        <div className="w-full h-full flex flex-col items-center justify-center p-2 text-center bg-slate-900 border border-slate-800 select-none">
+          <ImageIcon className="w-6 h-6 text-amber-500/60 mb-1" />
+          <span className="text-[10px] font-bold text-slate-300 line-clamp-1">Image Unavailable</span>
+          <span className="text-[8px] font-mono text-slate-500 mt-0.5 max-w-[140px] truncate">
+            {clue.text || `Clue #${idx + 1}`}
+          </span>
+        </div>
+      );
+    }
+
+    return (
+      <div className="relative w-full h-full flex items-center justify-center overflow-hidden bg-slate-950">
+        {!loaded && (
+          <div className="absolute inset-0 flex items-center justify-center bg-slate-900 animate-pulse">
+            <ImageIcon className="w-5 h-5 text-amber-500/30 animate-bounce" />
+          </div>
+        )}
+        <img
+          src={resolvedUrl}
+          alt={clue.text || `Clue ${idx + 1}`}
+          onLoad={() => setLoaded(true)}
+          onError={() => setHasError(true)}
+          className={`${className} object-cover object-center transition-all duration-300 ${
+            loaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+          }`}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col items-center justify-center p-3 text-center text-slate-500">
+      <ImageIcon className="w-7 h-7 mb-1 text-slate-600" />
+      <span className="text-[10px] font-mono uppercase font-bold text-slate-400">
+        {clue?.text || `Clue #${idx + 1}`}
+      </span>
+    </div>
+  );
+}
 
 export default function Questions() {
   const [questions, setQuestions] = useState([]);
@@ -94,11 +217,28 @@ export default function Questions() {
     reader.onload = async (event) => {
       try {
         const parsed = JSON.parse(event.target.result);
-        const importedQuestions = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.data) ? parsed.data : parsed.questions);
-        if (!Array.isArray(importedQuestions) || importedQuestions.length === 0) {
+        const rawList = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.data) ? parsed.data : parsed.questions);
+        if (!Array.isArray(rawList) || rawList.length === 0) {
           showToast('Invalid questions file format', 'danger');
           return;
         }
+
+        // Normalize each clue to ensure url, src, imageUrl, etc. are properly captured
+        const importedQuestions = rawList.map(q => ({
+          ...q,
+          clues: Array.isArray(q.clues)
+            ? q.clues.map(c => {
+                const item = parseClueItem(c);
+                return {
+                  text: item.text || '',
+                  image: item.image || '',
+                  video: item.video || '',
+                  mediaType: item.video ? 'video' : (item.image ? 'image' : (item.emoji ? 'emoji' : 'text')),
+                  emoji: item.emoji || ''
+                };
+              })
+            : []
+        }));
 
         if (!window.confirm(`Import ${importedQuestions.length} questions into database? This will update your questions bank.`)) {
           return;
@@ -473,34 +613,7 @@ export default function Questions() {
 
                           {/* Media Frame (Proper Aspect Ratio) */}
                           <div className="h-32 sm:h-36 relative bg-slate-950 flex items-center justify-center overflow-hidden">
-                            {clue.video ? (
-                              <video
-                                src={clue.video}
-                                autoPlay
-                                loop
-                                muted
-                                playsInline
-                                className="w-full h-full object-cover"
-                              />
-                            ) : clue.image ? (
-                              <img
-                                src={clue.image}
-                                alt={clue.text || `Clue ${cIdx + 1}`}
-                                className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
-                                onError={(e) => {
-                                  e.target.style.display = 'none';
-                                }}
-                              />
-                            ) : clue.emoji ? (
-                              <span className="text-5xl drop-shadow-md group-hover:scale-110 transition-transform">
-                                {clue.emoji}
-                              </span>
-                            ) : (
-                              <div className="flex flex-col items-center justify-center p-3 text-center text-slate-500">
-                                <ImageIcon className="w-8 h-8 mb-1 text-slate-600" />
-                                <span className="text-[10px] font-mono uppercase">Text Clue</span>
-                              </div>
-                            )}
+                            <ClueThumbnail clue={clue} idx={cIdx} />
 
                             {/* Gradient Overlay */}
                             {!clue.video && (
@@ -756,37 +869,7 @@ function QuestionPreviewModal({ question, onClose }) {
                 </div>
 
                 <div className="flex-1 w-full rounded-xl bg-slate-950 overflow-hidden flex items-center justify-center relative mb-2">
-                  {clue.video ? (
-                    <video
-                      src={clue.video}
-                      autoPlay
-                      loop
-                      muted
-                      playsInline
-                      className="w-full h-full object-contain bg-black"
-                    />
-                  ) : clue.image ? (
-                    <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
-                      <img
-                        src={clue.image}
-                        alt=""
-                        className="absolute inset-0 w-full h-full object-cover blur-md opacity-25 scale-110 pointer-events-none"
-                      />
-                      <img
-                        src={clue.image}
-                        alt={clue.text || `Clue ${idx + 1}`}
-                        className="relative max-w-full max-h-full object-contain drop-shadow-md z-10"
-                        onError={(e) => { e.target.style.display = 'none'; }}
-                      />
-                    </div>
-                  ) : clue.emoji ? (
-                    <span className="text-6xl drop-shadow-md">{clue.emoji}</span>
-                  ) : (
-                    <div className="text-center p-3 text-slate-600">
-                      <ImageIcon className="w-10 h-10 mx-auto mb-1 text-slate-500" />
-                      <span className="text-[10px] font-mono uppercase font-bold text-slate-400">Text Clue</span>
-                    </div>
-                  )}
+                  <ClueThumbnail clue={clue} idx={idx} />
                 </div>
 
                 <div className="text-center">
@@ -900,32 +983,49 @@ function QuestionEditorModal({ question, onClose, onSave }) {
   // Upload clue image or video file
   const handleUploadClueMedia = async (idx, file) => {
     if (!file) return;
-    const fd = new FormData();
-    fd.append('media', file);
     setUploadingClueIndex(idx);
 
     try {
+      const isVideo = file.type.startsWith('video/') || /\.(mp4|webm|ogg|mov)$/i.test(file.name);
+
+      if (!isVideo) {
+        // 1. Instant client-side compression to ~100-150KB base64 Data URL
+        // Embedded directly into question data: survives all Render container restarts & exports!
+        const compressedDataUrl = await compressImageFile(file, 1280, 1280, 0.82);
+        if (compressedDataUrl) {
+          const updated = [...formData.clues];
+          updated[idx] = {
+            ...updated[idx],
+            image: compressedDataUrl,
+            video: '',
+            mediaType: 'image'
+          };
+          setFormData({ ...formData, clues: updated });
+        }
+      }
+
+      // 2. Also send to server for local disk storage / caching
+      const fd = new FormData();
+      fd.append('media', file);
       const res = await fetch('/api/questions/upload-media', {
         method: 'POST',
         headers: { 'x-host-pin': pin },
         body: fd
       });
       const data = await res.json();
-      if (data.success) {
-        const isVideo = data.type === 'video';
+      if (data.success && isVideo) {
         const updated = [...formData.clues];
         updated[idx] = {
           ...updated[idx],
-          [isVideo ? 'video' : 'image']: data.url,
-          mediaType: isVideo ? 'video' : 'image'
+          video: data.url,
+          image: '',
+          mediaType: 'video'
         };
         setFormData({ ...formData, clues: updated });
-      } else {
-        alert(data.message || 'Media upload failed');
       }
     } catch (e) {
       console.error('Media upload error:', e);
-      alert('Network error uploading media');
+      alert('Error processing media file: ' + (e.message || 'Unknown error'));
     } finally {
       setUploadingClueIndex(null);
     }
@@ -1177,32 +1277,12 @@ function QuestionEditorModal({ question, onClose, onSave }) {
                   {/* Media Preview Box */}
                   <div className="w-full h-28 rounded-xl bg-slate-900 border border-slate-800 overflow-hidden flex items-center justify-center relative">
                     {uploadingClueIndex === idx ? (
-                      <div className="text-xs font-mono text-cyan-400 animate-pulse">
-                        Uploading media...
+                      <div className="text-xs font-mono text-cyan-400 animate-pulse flex flex-col items-center justify-center p-2">
+                        <ImageIcon className="w-5 h-5 text-cyan-400 mb-1 animate-bounce" />
+                        <span>Optimizing media...</span>
                       </div>
-                    ) : clue.video ? (
-                      <video
-                        src={clue.video}
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
-                        className="w-full h-full object-cover"
-                      />
-                    ) : clue.image ? (
-                      <img
-                        src={clue.image}
-                        alt="Preview"
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                        }}
-                      />
                     ) : (
-                      <div className="text-center p-2 text-slate-600">
-                        <ImageIcon className="w-6 h-6 mx-auto mb-1 text-slate-600" />
-                        <span className="text-[10px] font-mono">No Image/Video</span>
-                      </div>
+                      <ClueThumbnail clue={clue} idx={idx} />
                     )}
                   </div>
 

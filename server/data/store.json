@@ -434,148 +434,461 @@
       "title": "The Great Physics Connection",
       "clues": [
         {
-          "text": "🍎 Red Apple",
-          "image": "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=600&auto=format&fit=crop&q=80"
+          "text": "Red Apple",
+          "image": "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         },
         {
-          "text": "👨 Isaac Newton",
-          "image": "https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=600&auto=format&fit=crop&q=80"
+          "text": "Isaac Newton",
+          "image": "https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         },
         {
-          "text": "🍂 Falling from a tree",
-          "image": "https://images.unsplash.com/photo-1507499739999-097706ad8914?w=600&auto=format&fit=crop&q=80"
+          "text": "Falling from tree",
+          "image": "https://images.unsplash.com/photo-1507499739999-097706ad8914?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         },
         {
-          "text": "🪐 Planetary Orbits",
-          "image": "https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?w=600&auto=format&fit=crop&q=80"
+          "text": "Planetary Orbits",
+          "image": "https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         }
       ],
       "answerText": "Gravity",
+      "englishText": "",
+      "tamilText": "",
+      "ttsClue": "",
+      "revealAllAtStart": false,
       "points": 10,
       "timerDuration": 30,
       "answerAudio": null,
       "answerAudioEnabled": true,
-      "audioType": "tts"
+      "audioType": "tts",
+      "updatedAt": "2026-09-16T19:21:43.523Z"
     },
     {
       "id": "q-r1-2",
       "round": 1,
       "questionNumber": 2,
-      "title": "Celestial Optics",
+      "title": "FIND THE MOVIE",
       "clues": [
         {
-          "text": "🌧️ Rain droplets",
-          "image": "https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=600&auto=format&fit=crop&q=80"
+          "text": "Rain droplets",
+          "image": "https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         },
         {
-          "text": "☀️ Direct Sunlight",
-          "image": "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=600&auto=format&fit=crop&q=80"
+          "text": "Direct Sunlight",
+          "image": "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         },
         {
-          "text": "🔺 Triangular Prism",
-          "image": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&auto=format&fit=crop&q=80"
+          "text": "Triangular Prism",
+          "image": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         },
         {
-          "text": "🌈 Seven Colors (VIBGYOR)",
-          "image": "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=600&auto=format&fit=crop&q=80"
+          "text": "Seven Colors (VIBGYOR)",
+          "image": "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         }
       ],
       "answerText": "Rainbow",
+      "englishText": "",
+      "tamilText": "",
+      "ttsClue": "",
+      "revealAllAtStart": false,
       "points": 10,
       "timerDuration": 30,
       "answerAudio": null,
       "answerAudioEnabled": true,
-      "audioType": "tts"
+      "audioType": "tts",
+      "updatedAt": "2026-09-16T19:21:43.523Z"
     },
     {
       "id": "q-r1-3",
       "round": 1,
       "questionNumber": 3,
-      "title": "Web Evolution",
+      "title": "FIND THE MOVIE",
       "clues": [
         {
-          "text": "🕸️ World Wide Web inventor",
-          "image": "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600&auto=format&fit=crop&q=80"
+          "text": "CERN Particle Lab",
+          "image": "https://images.unsplash.com/photo-1507413245164-6160d8298b31?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         },
         {
-          "text": "🏛️ CERN Laboratory (Switzerland)",
-          "image": "https://images.unsplash.com/photo-1507668077129-56e32842fceb?w=600&auto=format&fit=crop&q=80"
+          "text": "HTML & First Website",
+          "image": "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         },
         {
-          "text": "🌐 HTML and HTTP Protocol",
-          "image": "https://images.unsplash.com/photo-1542838132-92c53300491e?w=600&auto=format&fit=crop&q=80"
+          "text": "NeXT Workstation",
+          "image": "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         },
         {
-          "text": "🎖️ Knighted by Queen Elizabeth II",
-          "image": "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=600&auto=format&fit=crop&q=80"
+          "text": "World Wide Web (1989)",
+          "image": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         }
       ],
       "answerText": "Tim Berners-Lee",
+      "englishText": "",
+      "tamilText": "",
+      "ttsClue": "",
+      "revealAllAtStart": false,
       "points": 10,
       "timerDuration": 30,
       "answerAudio": null,
       "answerAudioEnabled": true,
-      "audioType": "tts"
+      "audioType": "tts",
+      "updatedAt": "2026-09-16T19:21:43.523Z"
     },
     {
       "id": "q-r1-4",
       "round": 1,
       "questionNumber": 4,
-      "title": "Tech Giants & Icons",
+      "title": "FIND THE MOVIE",
       "clues": [
         {
-          "text": "🍏 Cupertino Garage 1976",
-          "image": "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=600&auto=format&fit=crop&q=80"
+          "text": "Iconic Bitten Apple",
+          "image": "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         },
         {
-          "text": "📱 Revolutionized Smartphones (2007)",
-          "image": "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&auto=format&fit=crop&q=80"
+          "text": "1984 Macintosh Launch",
+          "image": "https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         },
         {
-          "text": "👕 Iconic Black Turtleneck",
-          "image": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=600&auto=format&fit=crop&q=80"
-        },
-        {
-          "text": "💡 Think Different",
-          "image": "https://images.unsplash.com/photo-1493612276216-ee3925520721?w=600&auto=format&fit=crop&q=80"
+          "text": "iPhone Touch Revolution",
+          "image": "https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         }
       ],
       "answerText": "Steve Jobs / Apple",
+      "englishText": "",
+      "tamilText": "",
+      "ttsClue": "",
+      "revealAllAtStart": false,
       "points": 10,
       "timerDuration": 30,
       "answerAudio": null,
       "answerAudioEnabled": true,
-      "audioType": "tts"
+      "audioType": "tts",
+      "updatedAt": "2026-09-16T19:21:43.523Z"
     },
     {
       "id": "q-r1-5",
       "round": 1,
       "questionNumber": 5,
-      "title": "Digital Currencies",
+      "title": "FIND THE MOVIE",
       "clues": [
         {
-          "text": "⛏️ Distributed Proof of Work",
-          "image": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&auto=format&fit=crop&q=80"
+          "text": "Digital Gold / Crypto",
+          "image": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         },
         {
-          "text": "📄 Whitepaper published in 2008",
-          "image": "https://images.unsplash.com/photo-1450133064473-71024230f91b?w=600&auto=format&fit=crop&q=80"
+          "text": "Distributed Blockchain",
+          "image": "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         },
         {
-          "text": "👤 Anonymous Satoshi Nakamoto",
-          "image": "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=600&auto=format&fit=crop&q=80"
+          "text": "Proof-of-Work Mining",
+          "image": "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         },
         {
-          "text": "💰 Genesis Block with 21 Million limit",
-          "image": "https://images.unsplash.com/photo-1516245834210-c4c142787335?w=600&auto=format&fit=crop&q=80"
+          "text": "Satoshi 2008 Whitepaper",
+          "image": "https://images.unsplash.com/photo-1622979135225-d2ba269bc1df?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         }
       ],
       "answerText": "Bitcoin / Blockchain",
+      "englishText": "",
+      "tamilText": "",
+      "ttsClue": "",
+      "revealAllAtStart": false,
       "points": 10,
       "timerDuration": 30,
       "answerAudio": null,
       "answerAudioEnabled": true,
-      "audioType": "tts"
+      "audioType": "tts",
+      "updatedAt": "2026-09-16T19:21:43.523Z"
+    },
+    {
+      "id": "q-r1-6287572f",
+      "round": 1,
+      "questionNumber": 6,
+      "title": "The Great Physics Connection (Copy)",
+      "clues": [
+        {
+          "text": "Red Apple",
+          "image": "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
+        },
+        {
+          "text": "Isaac Newton",
+          "image": "https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
+        },
+        {
+          "text": "Falling from tree",
+          "image": "https://images.unsplash.com/photo-1507499739999-097706ad8914?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
+        },
+        {
+          "text": "Planetary Orbits",
+          "image": "https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
+        }
+      ],
+      "answerText": "Gravity",
+      "englishText": "",
+      "tamilText": "",
+      "ttsClue": "",
+      "revealAllAtStart": false,
+      "points": 10,
+      "timerDuration": 30,
+      "answerAudio": null,
+      "answerAudioEnabled": true,
+      "audioType": "tts",
+      "updatedAt": "2026-09-16T19:21:43.523Z"
+    },
+    {
+      "id": "q-r1-070da93d",
+      "round": 1,
+      "questionNumber": 7,
+      "title": "FIND THE MOIVE",
+      "clues": [
+        {
+          "text": "The Unsinkable Ship",
+          "image": "https://images.unsplash.com/photo-1509718443690-d8e2fb3474b7?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
+        },
+        {
+          "text": "North Atlantic Iceberg",
+          "image": "https://images.unsplash.com/photo-1483181957632-8bda974cbc91?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
+        },
+        {
+          "text": "Heart of the Ocean",
+          "image": "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
+        },
+        {
+          "text": "1997 James Cameron Classic",
+          "image": "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
+        }
+      ],
+      "answerText": "T",
+      "englishText": "",
+      "tamilText": "",
+      "ttsClue": "",
+      "revealAllAtStart": false,
+      "points": 10,
+      "timerDuration": 30,
+      "answerAudio": null,
+      "answerAudioEnabled": true,
+      "audioType": "tts",
+      "updatedAt": "2026-09-16T19:21:43.523Z"
+    },
+    {
+      "id": "q-r1-38dc4b1f",
+      "round": 1,
+      "questionNumber": 8,
+      "title": "FIND THE SONG",
+      "clues": [
+        {
+          "text": "Australian Hitmaker Kid LAROI",
+          "image": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
+        },
+        {
+          "text": "Billboard Hot 100 #1",
+          "image": "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
+        },
+        {
+          "text": "Time and Promises",
+          "image": "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
+        },
+        {
+          "text": "Canadian Superstar Feature",
+          "image": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
+        }
+      ],
+      "answerText": "S",
+      "englishText": "",
+      "tamilText": "",
+      "ttsClue": "",
+      "revealAllAtStart": false,
+      "points": 10,
+      "timerDuration": 30,
+      "answerAudio": null,
+      "answerAudioEnabled": true,
+      "audioType": "tts",
+      "updatedAt": "2026-09-16T19:21:43.523Z"
+    },
+    {
+      "id": "q-r1-2d634ab2",
+      "round": 1,
+      "questionNumber": 9,
+      "title": "FIND THE SONG",
+      "clues": [
+        {
+          "text": "Acoustic Guitar Melody",
+          "image": "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
+        },
+        {
+          "text": "Boxing Club Music Video",
+          "image": "https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
+        },
+        {
+          "text": "Mathematics Album (Divide)",
+          "image": "https://images.unsplash.com/photo-1509228468518-180dd4864904?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
+        },
+        {
+          "text": "British Singer Ed Sheeran",
+          "image": "https://images.unsplash.com/photo-1465847899084-d164df4dedc6?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
+        }
+      ],
+      "answerText": "S",
+      "englishText": "",
+      "tamilText": "",
+      "ttsClue": "",
+      "revealAllAtStart": false,
+      "points": 10,
+      "timerDuration": 30,
+      "answerAudio": null,
+      "answerAudioEnabled": true,
+      "audioType": "tts",
+      "updatedAt": "2026-09-16T19:21:43.523Z"
+    },
+    {
+      "id": "q-r1-29cb6b55",
+      "round": 1,
+      "questionNumber": 10,
+      "title": "FIND THE SONG",
+      "clues": [
+        {
+          "text": "Bright Blooming Sunflower",
+          "image": "https://images.unsplash.com/photo-1597848212624-a19eb35e2651?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
+        },
+        {
+          "text": "Spider-Man: Into the Spider-Verse",
+          "image": "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
+        },
+        {
+          "text": "Brooklyn Graffiti Colors",
+          "image": "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
+        },
+        {
+          "text": "17x Platinum Soundtrack",
+          "image": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
+        }
+      ],
+      "answerText": "S",
+      "englishText": "",
+      "tamilText": "",
+      "ttsClue": "",
+      "revealAllAtStart": false,
+      "points": 10,
+      "timerDuration": 30,
+      "answerAudio": null,
+      "answerAudioEnabled": true,
+      "audioType": "tts",
+      "updatedAt": "2026-09-16T19:21:43.523Z"
     },
     {
       "id": "q-r2-1",
@@ -585,27 +898,44 @@
       "clues": [
         {
           "text": "🏖️ Beach Sand (Silicon Dioxide)",
-          "image": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&auto=format&fit=crop&q=80"
+          "image": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         },
         {
           "text": "⚡ Semiconductors & Wafers",
-          "image": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&auto=format&fit=crop&q=80"
+          "image": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         },
         {
           "text": "🏢 Santa Clara Valley in California",
-          "image": "https://images.unsplash.com/photo-1506146332389-18140dc7b2fb?w=600&auto=format&fit=crop&q=80"
+          "image": "https://images.unsplash.com/photo-1506146332389-18140dc7b2fb?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         },
         {
           "text": "💻 Microchips & Integrated Circuits",
-          "image": "https://images.unsplash.com/photo-1555680202-c86f0e12f086?w=600&auto=format&fit=crop&q=80"
+          "image": "https://images.unsplash.com/photo-1555680202-c86f0e12f086?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         }
       ],
       "answerText": "Silicon Valley / Microprocessors",
+      "englishText": "",
+      "tamilText": "",
+      "ttsClue": "",
+      "revealAllAtStart": false,
       "points": 10,
       "timerDuration": 30,
       "answerAudio": null,
       "answerAudioEnabled": true,
-      "audioType": "tts"
+      "audioType": "tts",
+      "updatedAt": "2026-09-16T19:21:43.524Z"
     },
     {
       "id": "q-r2-2",
@@ -615,27 +945,44 @@
       "clues": [
         {
           "text": "🇬🇧 Bletchley Park Enigma code breaker",
-          "image": "https://images.unsplash.com/photo-1584824486509-112e4181ff6b?w=600&auto=format&fit=crop&q=80"
+          "image": "https://images.unsplash.com/photo-1584824486509-112e4181ff6b?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         },
         {
           "text": "🧠 Can Machines Think? (Imitation Game)",
-          "image": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=80"
+          "image": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         },
         {
           "text": "🏆 Highest annual award in Computer Science",
-          "image": "https://images.unsplash.com/photo-1567427017947-545c5f8d16ad?w=600&auto=format&fit=crop&q=80"
+          "image": "https://images.unsplash.com/photo-1567427017947-545c5f8d16ad?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         },
         {
           "text": "🍎 Half-eaten cyanide apple mystery",
-          "image": "https://images.unsplash.com/photo-1570913149827-d2ac84ab3f9a?w=600&auto=format&fit=crop&q=80"
+          "image": "https://images.unsplash.com/photo-1570913149827-d2ac84ab3f9a?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         }
       ],
       "answerText": "Alan Turing",
+      "englishText": "",
+      "tamilText": "",
+      "ttsClue": "",
+      "revealAllAtStart": false,
       "points": 10,
       "timerDuration": 30,
       "answerAudio": null,
       "answerAudioEnabled": true,
-      "audioType": "tts"
+      "audioType": "tts",
+      "updatedAt": "2026-09-16T19:21:43.524Z"
     },
     {
       "id": "q-r2-3",
@@ -645,27 +992,44 @@
       "clues": [
         {
           "text": "🚀 Falcon 9 Reusable Boosters",
-          "image": "https://images.unsplash.com/photo-1517976487502-53664052345e?w=600&auto=format&fit=crop&q=80"
+          "image": "https://images.unsplash.com/photo-1517976487502-53664052345e?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         },
         {
           "text": "🔴 Ambition to colonize Mars",
-          "image": "https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?w=600&auto=format&fit=crop&q=80"
+          "image": "https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         },
         {
           "text": "🛰️ Starlink Global Satellite Mesh",
-          "image": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600&auto=format&fit=crop&q=80"
+          "image": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         },
         {
           "text": "⚡ Founded by Elon Musk in 2002",
-          "image": "https://images.unsplash.com/photo-1509228468518-180dd4864904?w=600&auto=format&fit=crop&q=80"
+          "image": "https://images.unsplash.com/photo-1509228468518-180dd4864904?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         }
       ],
       "answerText": "SpaceX",
+      "englishText": "",
+      "tamilText": "",
+      "ttsClue": "",
+      "revealAllAtStart": false,
       "points": 10,
       "timerDuration": 30,
       "answerAudio": null,
       "answerAudioEnabled": true,
-      "audioType": "tts"
+      "audioType": "tts",
+      "updatedAt": "2026-09-16T19:21:43.524Z"
     },
     {
       "id": "q-r2-4",
@@ -675,27 +1039,44 @@
       "clues": [
         {
           "text": "🌲 Number represented as 1 followed by 100 zeros",
-          "image": "https://images.unsplash.com/photo-1509228468518-180dd4864904?w=600&auto=format&fit=crop&q=80"
+          "image": "https://images.unsplash.com/photo-1509228468518-180dd4864904?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         },
         {
           "text": "🎓 Stanford University dorm room (1998)",
-          "image": "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=600&auto=format&fit=crop&q=80"
+          "image": "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         },
         {
           "text": "📄 PageRank Algorithm Patent",
-          "image": "https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?w=600&auto=format&fit=crop&q=80"
+          "image": "https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         },
         {
           "text": "🌐 Don’t Be Evil motto",
-          "image": "https://images.unsplash.com/photo-1572021335469-31706a17aaef?w=600&auto=format&fit=crop&q=80"
+          "image": "https://images.unsplash.com/photo-1572021335469-31706a17aaef?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         }
       ],
       "answerText": "Google",
+      "englishText": "",
+      "tamilText": "",
+      "ttsClue": "",
+      "revealAllAtStart": false,
       "points": 10,
       "timerDuration": 30,
       "answerAudio": null,
       "answerAudioEnabled": true,
-      "audioType": "tts"
+      "audioType": "tts",
+      "updatedAt": "2026-09-16T19:21:43.524Z"
     },
     {
       "id": "q-r2-5",
@@ -705,27 +1086,44 @@
       "clues": [
         {
           "text": "🐧 Tux the cute mascot",
-          "image": "https://images.unsplash.com/photo-1598439210625-5067c578f3f6?w=600&auto=format&fit=crop&q=80"
+          "image": "https://images.unsplash.com/photo-1598439210625-5067c578f3f6?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         },
         {
           "text": "🇫🇮 Finnish university student (1991)",
-          "image": "https://images.unsplash.com/photo-1517411032315-54ef2cb783bb?w=600&auto=format&fit=crop&q=80"
+          "image": "https://images.unsplash.com/photo-1517411032315-54ef2cb783bb?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         },
         {
           "text": "🐙 Git version control creator",
-          "image": "https://images.unsplash.com/photo-1556075798-4825dfaaf498?w=600&auto=format&fit=crop&q=80"
+          "image": "https://images.unsplash.com/photo-1556075798-4825dfaaf498?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         },
         {
           "text": "📱 Powers Android & 90% of cloud servers",
-          "image": "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=600&auto=format&fit=crop&q=80"
+          "image": "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         }
       ],
       "answerText": "Linux / Linus Torvalds",
+      "englishText": "",
+      "tamilText": "",
+      "ttsClue": "",
+      "revealAllAtStart": false,
       "points": 10,
       "timerDuration": 30,
       "answerAudio": null,
       "answerAudioEnabled": true,
-      "audioType": "tts"
+      "audioType": "tts",
+      "updatedAt": "2026-09-16T19:21:43.524Z"
     },
     {
       "id": "q-r3-1",
@@ -735,27 +1133,44 @@
       "clues": [
         {
           "text": "🐱 Paradoxical Cat in a sealed box",
-          "image": "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600&auto=format&fit=crop&q=80"
+          "image": "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         },
         {
           "text": "🌀 Superposition of states (0 and 1 together)",
-          "image": "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=600&auto=format&fit=crop&q=80"
+          "image": "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         },
         {
           "text": "🔒 Quantum Cryptography & Qubits",
-          "image": "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600&auto=format&fit=crop&q=80"
+          "image": "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         },
         {
           "text": "👨 Erwin Schrödinger Nobel Laureate",
-          "image": "https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=600&auto=format&fit=crop&q=80"
+          "image": "https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         }
       ],
       "answerText": "Quantum Superposition / Schrödinger",
+      "englishText": "",
+      "tamilText": "",
+      "ttsClue": "",
+      "revealAllAtStart": false,
       "points": 15,
       "timerDuration": 20,
       "answerAudio": null,
       "answerAudioEnabled": true,
-      "audioType": "tts"
+      "audioType": "tts",
+      "updatedAt": "2026-09-16T19:21:43.524Z"
     },
     {
       "id": "q-r3-2",
@@ -765,27 +1180,44 @@
       "clues": [
         {
           "text": "⚡ Alternating Current (AC) electrical grid",
-          "image": "https://images.unsplash.com/photo-1509228468518-180dd4864904?w=600&auto=format&fit=crop&q=80"
+          "image": "https://images.unsplash.com/photo-1509228468518-180dd4864904?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         },
         {
           "text": "🗼 Wardenclyffe Wireless Transmission Tower",
-          "image": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&auto=format&fit=crop&q=80"
+          "image": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         },
         {
           "text": "🚗 Famous electric car company namesake",
-          "image": "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=600&auto=format&fit=crop&q=80"
+          "image": "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         },
         {
           "text": "💡 Bitter rivalry with Thomas Edison",
-          "image": "https://images.unsplash.com/photo-1493612276216-ee3925520721?w=600&auto=format&fit=crop&q=80"
+          "image": "https://images.unsplash.com/photo-1493612276216-ee3925520721?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         }
       ],
       "answerText": "Nikola Tesla",
+      "englishText": "",
+      "tamilText": "",
+      "ttsClue": "",
+      "revealAllAtStart": false,
       "points": 15,
       "timerDuration": 20,
       "answerAudio": null,
       "answerAudioEnabled": true,
-      "audioType": "tts"
+      "audioType": "tts",
+      "updatedAt": "2026-09-16T19:21:43.524Z"
     },
     {
       "id": "q-r3-3",
@@ -795,27 +1227,44 @@
       "clues": [
         {
           "text": "♟️ 64 Squares and Grandmaster Champion",
-          "image": "https://images.unsplash.com/photo-1529699211952-734e80c4d42b?w=600&auto=format&fit=crop&q=80"
+          "image": "https://images.unsplash.com/photo-1529699211952-734e80c4d42b?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         },
         {
           "text": "💻 IBM Supercomputer Deep Blue (1997)",
-          "image": "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=600&auto=format&fit=crop&q=80"
+          "image": "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         },
         {
           "text": "🇷🇺 Garry Kasparov historic match",
-          "image": "https://images.unsplash.com/photo-1586165368502-1bad197a6461?w=600&auto=format&fit=crop&q=80"
+          "image": "https://images.unsplash.com/photo-1586165368502-1bad197a6461?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         },
         {
           "text": "🤖 First time machine defeated reigning world chess king",
-          "image": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=80"
+          "image": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=80",
+          "video": "",
+          "mediaType": "image",
+          "emoji": ""
         }
       ],
       "answerText": "Deep Blue vs Garry Kasparov / Chess AI",
+      "englishText": "",
+      "tamilText": "",
+      "ttsClue": "",
+      "revealAllAtStart": false,
       "points": 15,
       "timerDuration": 20,
       "answerAudio": null,
       "answerAudioEnabled": true,
-      "audioType": "tts"
+      "audioType": "tts",
+      "updatedAt": "2026-09-16T19:21:43.524Z"
     }
   ],
   "settings": {

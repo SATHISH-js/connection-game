@@ -38,6 +38,7 @@ import { useGame } from '../context/GameContext';
 import HostLayout from '../components/HostLayout';
 import TimerDisplay from '../components/TimerDisplay';
 import { parseClueItem } from '../components/QuestionCard';
+import { resolveMediaUrl } from '../utils/media';
 import CelebrationAudioController from '../components/CelebrationAudioController';
 
 export default function HostDashboard() {
@@ -984,10 +985,13 @@ export default function HostDashboard() {
                                 </div>
                               ) : clue.image ? (
                                 <img
-                                  src={clue.image}
+                                  src={resolveMediaUrl(clue.image)}
                                   alt="Clue"
-                                  className="w-8 h-8 rounded-lg object-cover border border-slate-700 shrink-0"
-                                  onError={(e) => { e.target.style.display = 'none'; }}
+                                  className="w-8 h-8 rounded-lg object-cover border border-slate-700 shrink-0 bg-slate-900"
+                                  onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' fill='%23f59e0b' viewBox='0 0 24 24'%3E%3Cpath d='M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z'/%3E%3C/svg%3E";
+                                  }}
                                 />
                               ) : clue.emoji ? (
                                 <span className="text-xl shrink-0">{clue.emoji}</span>
